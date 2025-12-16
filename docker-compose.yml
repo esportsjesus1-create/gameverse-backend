@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=gameverse_ledger
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_POOL_MIN=2
+      - DB_POOL_MAX=10
+      - BASE_CURRENCY=USD
+      - RECONCILIATION_ENABLED=true
+      - RECONCILIATION_CRON=0 0 * * *
+      - AUDIT_ENABLED=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - ledger-network
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=gameverse_ledger
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./src/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d gameverse_ledger"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - ledger-network
+
+  postgres-test:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=gameverse_ledger_test
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d gameverse_ledger_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ledger-network
+
+volumes:
+  postgres-data:
+
+networks:
+  ledger-network:
+    driver: bridge

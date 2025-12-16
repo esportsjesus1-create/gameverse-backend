@@ -1,0 +1,64 @@
+{
+  "name": "gameverse-ledger",
+  "version": "1.4.0",
+  "description": "GameVerse N1.4 Double-Entry Accounting Ledger",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "SKIP_DB_SETUP=true jest --passWithNoTests",
+    "test:coverage": "SKIP_DB_SETUP=true jest --coverage --passWithNoTests",
+    "test:watch": "SKIP_DB_SETUP=true jest --watch",
+    "lint": "eslint 'src/**/*.ts' --max-warnings 0",
+    "lint:fix": "eslint 'src/**/*.ts' --fix",
+    "format": "prettier --write 'src/**/*.ts'",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist coverage",
+    "db:migrate": "ts-node -e \"require('./src/db/migrations').runMigrations()\"",
+    "db:drop": "ts-node -e \"require('./src/db/migrations').dropAllTables()\""
+  },
+  "keywords": [
+    "accounting",
+    "ledger",
+    "double-entry",
+    "finance",
+    "gameverse"
+  ],
+  "author": "GameVerse",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.2",
+    "@types/node-cron": "^3.0.11",
+    "@types/pdfkit": "^0.17.4",
+    "@types/pg": "^8.16.0",
+    "@types/uuid": "^10.0.0",
+    "csv-writer": "^1.6.0",
+    "decimal.js": "^10.6.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "node-cron": "^4.2.1",
+    "pdfkit": "^0.17.2",
+    "pg": "^8.16.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.15.5",
+    "@swc/jest": "^0.2.39",
+    "@types/jest": "^30.0.0",
+    "@types/supertest": "^6.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.50.0",
+    "@typescript-eslint/parser": "^8.50.0",
+    "eslint": "^9.39.2",
+    "jest": "^30.2.0",
+    "prettier": "^3.7.4",
+    "supertest": "^7.1.4",
+    "ts-jest": "^29.4.6"
+  }
+}
