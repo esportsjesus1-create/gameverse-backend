@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TournamentStatus {
+  DRAFT
+  REGISTRATION_OPEN
+  REGISTRATION_CLOSED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum TournamentFormat {
+  SINGLE_ELIMINATION
+  DOUBLE_ELIMINATION
+  ROUND_ROBIN
+  SWISS
+}
+
+enum MatchStatus {
+  PENDING
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  BYE
+}
+
+enum ParticipantStatus {
+  REGISTERED
+  CHECKED_IN
+  ELIMINATED
+  WINNER
+  WITHDRAWN
+}
+
+model Tournament {
+  id              String           @id @default(uuid())
+  name            String
+  description     String?
+  game            String
+  format          TournamentFormat @default(SINGLE_ELIMINATION)
+  status          TournamentStatus @default(DRAFT)
+  maxParticipants Int              @map("max_participants")
+  minParticipants Int              @default(2) @map("min_participants")
+  startDate       DateTime?        @map("start_date")
+  endDate         DateTime?        @map("end_date")
+  registrationStartDate DateTime?  @map("registration_start_date")
+  registrationEndDate   DateTime?  @map("registration_end_date")
+  rules           String?
+  prizePool       String?          @map("prize_pool")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  createdBy       String?          @map("created_by")
+
+  participants    Participant[]
+  brackets        Bracket[]
+  matches         Match[]
+
+  @@map("tournaments")
+}
+
+model Participant {
+  id            String            @id @default(uuid())
+  tournamentId  String            @map("tournament_id")
+  userId        String?           @map("user_id")
+  teamId        String?           @map("team_id")
+  name          String
+  email         String?
+  seed          Int?
+  status        ParticipantStatus @default(REGISTERED)
+  checkedInAt   DateTime?         @map("checked_in_at")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  tournament    Tournament        @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  matchesAsPlayer1 Match[]        @relation("Player1Matches")
+  matchesAsPlayer2 Match[]        @relation("Player2Matches")
+  matchesWon    Match[]           @relation("WinnerMatches")
+
+  @@unique([tournamentId, userId])
+  @@unique([tournamentId, teamId])
+  @@map("participants")
+}
+
+model Bracket {
+  id            String    @id @default(uuid())
+  tournamentId  String    @map("tournament_id")
+  name          String
+  type          String    @default("WINNERS")
+  round         Int
+  position      Int
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  tournament    Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  matches       Match[]
+
+  @@unique([tournamentId, type, round, position])
+  @@map("brackets")
+}
+
+model Match {
+  id            String      @id @default(uuid())
+  tournamentId  String      @map("tournament_id")
+  bracketId     String?     @map("bracket_id")
+  round         Int
+  position      Int
+  player1Id     String?     @map("player1_id")
+  player2Id     String?     @map("player2_id")
+  winnerId      String?     @map("winner_id")
+  player1Score  Int?        @map("player1_score")
+  player2Score  Int?        @map("player2_score")
+  status        MatchStatus @default(PENDING)
+  scheduledAt   DateTime?   @map("scheduled_at")
+  startedAt     DateTime?   @map("started_at")
+  completedAt   DateTime?   @map("completed_at")
+  nextMatchId   String?     @map("next_match_id")
+  nextMatchSlot Int?        @map("next_match_slot")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  tournament    Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  bracket       Bracket?    @relation(fields: [bracketId], references: [id], onDelete: SetNull)
+  player1       Participant? @relation("Player1Matches", fields: [player1Id], references: [id], onDelete: SetNull)
+  player2       Participant? @relation("Player2Matches", fields: [player2Id], references: [id], onDelete: SetNull)
+  winner        Participant? @relation("WinnerMatches", fields: [winnerId], references: [id], onDelete: SetNull)
+  nextMatch     Match?      @relation("MatchProgression", fields: [nextMatchId], references: [id], onDelete: SetNull)
+  previousMatches Match[]   @relation("MatchProgression")
+
+  @@unique([tournamentId, round, position])
+  @@map("matches")
+}
