@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  tournament:
+    build: .
+    ports:
+      - "3026:3026"
+    environment:
+      - NODE_ENV=production
+      - PORT=3026
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=gameverse_tournament
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=gameverse_tournament
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
