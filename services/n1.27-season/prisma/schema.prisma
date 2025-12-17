@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RankedTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+  MASTER
+  GRANDMASTER
+  CHALLENGER
+}
+
+model Season {
+  id                       String         @id @default(uuid())
+  name                     String
+  number                   Int            @unique
+  startDate                DateTime
+  endDate                  DateTime?
+  isActive                 Boolean        @default(false)
+  softResetFactor          Float          @default(0.5)
+  placementMatchesRequired Int            @default(10)
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  playerSeasons            PlayerSeason[]
+  matchResults             MatchResult[]
+
+  @@index([isActive])
+  @@index([number])
+}
+
+model PlayerSeason {
+  id                      String      @id @default(uuid())
+  playerId                String
+  seasonId                String
+  season                  Season      @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  mmr                     Int         @default(1200)
+  peakMmr                 Int         @default(1200)
+  tier                    RankedTier  @default(SILVER)
+  division                Int?        @default(4)
+  leaguePoints            Int         @default(0)
+  wins                    Int         @default(0)
+  losses                  Int         @default(0)
+  placementMatchesPlayed  Int         @default(0)
+  placementMatchesWon     Int         @default(0)
+  isPlacementComplete     Boolean     @default(false)
+  winStreak               Int         @default(0)
+  lossStreak              Int         @default(0)
+  isInPromos              Boolean     @default(false)
+  promoWins               Int         @default(0)
+  promoLosses             Int         @default(0)
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+
+  @@unique([playerId, seasonId])
+  @@index([playerId])
+  @@index([seasonId])
+  @@index([mmr])
+  @@index([tier, division])
+}
+
+model MatchResult {
+  id               String   @id @default(uuid())
+  playerId         String
+  seasonId         String
+  season           Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  opponentId       String
+  playerMmrBefore  Int
+  playerMmrAfter   Int
+  opponentMmrBefore Int
+  opponentMmrAfter Int
+  isWin            Boolean
+  mmrChange        Int
+  isPlacementMatch Boolean  @default(false)
+  gameMode         String   @default("ranked")
+  createdAt        DateTime @default(now())
+
+  @@index([playerId])
+  @@index([seasonId])
+  @@index([createdAt])
+}
+
+model SeasonArchive {
+  id           String     @id @default(uuid())
+  playerId     String
+  seasonId     String
+  seasonNumber Int
+  finalMmr     Int
+  peakMmr      Int
+  finalTier    RankedTier
+  finalDivision Int?
+  totalWins    Int
+  totalLosses  Int
+  finalRank    Int?
+  createdAt    DateTime   @default(now())
+
+  @@unique([playerId, seasonId])
+  @@index([playerId])
+  @@index([seasonNumber])
+}
