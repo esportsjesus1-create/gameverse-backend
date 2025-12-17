@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  game-session:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=gameverse
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RECONNECT_TOKEN_TTL=300
+      - MVP_KILL_WEIGHT=10
+      - MVP_DEATH_WEIGHT=-5
+      - MVP_ASSIST_WEIGHT=5
+      - MVP_DAMAGE_DEALT_WEIGHT=0.01
+      - MVP_DAMAGE_RECEIVED_WEIGHT=-0.005
+      - MVP_OBJECTIVE_WEIGHT=15
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - gameverse-network
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=gameverse
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gameverse-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gameverse-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  gameverse-network:
+    driver: bridge
