@@ -1,0 +1,44 @@
+{
+  "name": "gameverse-audit",
+  "version": "1.5.0",
+  "description": "GameVerse N1.5 - Audit Logging Service with GDPR/SOC2 Compliance",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn src/index.ts",
+    "test": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "docker:build": "docker build -t gameverse-audit ."
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.3",
+    "ioredis": "^5.3.2",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "winston": "^3.11.0",
+    "dotenv": "^16.3.1",
+    "uuid": "^9.0.1",
+    "express-validator": "^7.0.1",
+    "json2csv": "^6.0.0-alpha.2",
+    "crypto-js": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.4",
+    "@types/pg": "^8.10.9",
+    "@types/jest": "^29.5.11",
+    "@types/crypto-js": "^4.2.1",
+    "typescript": "^5.3.3",
+    "ts-node-dev": "^2.0.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "eslint": "^8.55.0",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
