@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  achievement-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gameverse-achievement
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=gameverse
+      - DB_PASSWORD=gameverse
+      - DB_NAME=gameverse_achievements
+      - DB_SSL=false
+      - DB_MAX_CONNECTIONS=20
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_KEY_PREFIX=gv:ach:
+      - CACHE_ACHIEVEMENT_TTL=3600
+      - CACHE_PROGRESS_TTL=300
+      - CACHE_STATS_TTL=600
+      - NOTIFICATIONS_MAX_PER_USER=100
+      - NOTIFICATIONS_RETENTION_DAYS=30
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - gameverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/v1/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: gameverse-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=gameverse
+      - POSTGRES_PASSWORD=gameverse
+      - POSTGRES_DB=gameverse_achievements
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - gameverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gameverse -d gameverse_achievements"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: gameverse-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - gameverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+networks:
+  gameverse-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
