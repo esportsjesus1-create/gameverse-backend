@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  gacha-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gameverse-gacha
+    ports:
+      - "3022:3022"
+    environment:
+      - NODE_ENV=production
+      - PORT=3022
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=gameverse
+      - POSTGRES_PASSWORD=gameverse_secret
+      - POSTGRES_DB=gameverse_gacha
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - gameverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3022/gacha/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: gameverse-gacha-postgres
+    environment:
+      - POSTGRES_USER=gameverse
+      - POSTGRES_PASSWORD=gameverse_secret
+      - POSTGRES_DB=gameverse_gacha
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - gameverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gameverse -d gameverse_gacha"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: gameverse-gacha-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - gameverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  gacha-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: gameverse-gacha-dev
+    ports:
+      - "3022:3022"
+    environment:
+      - NODE_ENV=development
+      - PORT=3022
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=gameverse
+      - POSTGRES_PASSWORD=gameverse_secret
+      - POSTGRES_DB=gameverse_gacha
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - gameverse-network
+    profiles:
+      - dev
+
+networks:
+  gameverse-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
