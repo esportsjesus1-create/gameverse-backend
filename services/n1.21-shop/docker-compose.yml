@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  shop-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gameverse-shop-api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://gameverse:gameverse_secret@postgres:5432/gameverse_shop
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - gameverse-network
+    restart: unless-stopped
+
+  shop-api-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: gameverse-shop-api-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=postgresql://gameverse:gameverse_secret@postgres:5432/gameverse_shop
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - gameverse-network
+    profiles:
+      - dev
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: gameverse-shop-db
+    environment:
+      - POSTGRES_USER=gameverse
+      - POSTGRES_PASSWORD=gameverse_secret
+      - POSTGRES_DB=gameverse_shop
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gameverse -d gameverse_shop"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gameverse-network
+    restart: unless-stopped
+
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: gameverse-shop-db-test
+    environment:
+      - POSTGRES_USER=gameverse
+      - POSTGRES_PASSWORD=gameverse_secret
+      - POSTGRES_DB=gameverse_shop_test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gameverse -d gameverse_shop_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - gameverse-network
+    profiles:
+      - test
+
+networks:
+  gameverse-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
