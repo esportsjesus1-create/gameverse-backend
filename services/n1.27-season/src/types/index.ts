@@ -169,3 +169,117 @@ export interface ApiResponse<T> {
   error?: string;
   message?: string;
 }
+
+export enum RewardType {
+  CURRENCY = 'CURRENCY',
+  SKIN = 'SKIN',
+  BORDER = 'BORDER',
+  ICON = 'ICON',
+  EMOTE = 'EMOTE',
+  TITLE = 'TITLE',
+  CHEST = 'CHEST',
+}
+
+export enum MilestoneType {
+  FIRST_WIN = 'FIRST_WIN',
+  WIN_STREAK = 'WIN_STREAK',
+  GAMES_PLAYED = 'GAMES_PLAYED',
+  TIER_REACHED = 'TIER_REACHED',
+  PEAK_MMR = 'PEAK_MMR',
+  PLACEMENT_COMPLETE = 'PLACEMENT_COMPLETE',
+  SEASON_COMPLETE = 'SEASON_COMPLETE',
+}
+
+export interface SeasonReward {
+  id: string;
+  seasonId: string;
+  tier: RankedTier;
+  rewardType: RewardType;
+  rewardId: string;
+  rewardName: string;
+  rewardDescription: string;
+  quantity: number;
+  isExclusive: boolean;
+  createdAt: Date;
+}
+
+export interface PlayerReward {
+  id: string;
+  playerId: string;
+  seasonId: string;
+  rewardId: string;
+  rewardType: RewardType;
+  rewardName: string;
+  earnedTier: RankedTier;
+  claimedAt: Date | null;
+  createdAt: Date;
+}
+
+export interface PlayerMilestone {
+  id: string;
+  playerId: string;
+  seasonId: string;
+  milestoneType: MilestoneType;
+  milestoneValue: number;
+  achievedAt: Date;
+  rewardClaimed: boolean;
+  createdAt: Date;
+}
+
+export interface PlayerProgression {
+  id: string;
+  playerId: string;
+  seasonId: string;
+  date: Date;
+  mmr: number;
+  tier: RankedTier;
+  division: TierDivision | null;
+  wins: number;
+  losses: number;
+  createdAt: Date;
+}
+
+export interface TierLeaderboard {
+  tier: RankedTier;
+  entries: LeaderboardEntry[];
+  total: number;
+}
+
+export interface PlayerStats {
+  playerId: string;
+  seasonId: string;
+  totalGames: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  currentMMR: number;
+  peakMMR: number;
+  currentTier: RankedTier;
+  currentDivision: TierDivision | null;
+  peakTier: RankedTier;
+  peakDivision: TierDivision | null;
+  longestWinStreak: number;
+  longestLossStreak: number;
+  averageMMRGain: number;
+  averageMMRLoss: number;
+  milestonesAchieved: number;
+  rewardsEarned: number;
+}
+
+export interface CreateRewardDTO {
+  seasonId: string;
+  tier: RankedTier;
+  rewardType: RewardType;
+  rewardId: string;
+  rewardName: string;
+  rewardDescription: string;
+  quantity: number;
+  isExclusive?: boolean;
+}
+
+export interface MilestoneConfig {
+  type: MilestoneType;
+  threshold: number;
+  rewardType?: RewardType;
+  rewardQuantity?: number;
+}

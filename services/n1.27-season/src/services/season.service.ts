@@ -386,6 +386,89 @@ export class SeasonService {
     return result;
   }
 
+  public async getTierLeaderboard(
+    seasonId: string,
+    tier: RankedTier,
+    page = 1,
+    limit = 50
+  ): Promise<{ tier: RankedTier; entries: LeaderboardEntry[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    const [players, total] = await Promise.all([
+      this.prisma.playerSeason.findMany({
+        where: {
+          seasonId,
+          isPlacementComplete: true,
+          tier: this.mapToRankedTier(tier),
+        },
+        orderBy: [{ mmr: 'desc' }, { wins: 'desc' }],
+        skip,
+        take: limit,
+      }),
+      this.prisma.playerSeason.count({
+        where: {
+          seasonId,
+          isPlacementComplete: true,
+          tier: this.mapToRankedTier(tier),
+        },
+      }),
+    ]);
+
+    const entries: LeaderboardEntry[] = players.map((player, index) => ({
+      rank: skip + index + 1,
+      playerId: player.playerId,
+      playerName: `Player_${player.playerId.slice(0, 8)}`,
+      tier: this.mapPrismaTier(player.tier),
+      division: player.division as TierDivision | null,
+      leaguePoints: player.leaguePoints,
+      mmr: player.mmr,
+      wins: player.wins,
+      losses: player.losses,
+      winRate: player.wins + player.losses > 0
+        ? Math.round((player.wins / (player.wins + player.losses)) * 100)
+        : 0,
+    }));
+
+    return { tier, entries, total };
+  }
+
+  public async getTopPlayersByTier(
+    seasonId: string,
+    limit = 10
+  ): Promise<Record<RankedTier, LeaderboardEntry[]>> {
+    const tiers = Object.values(RankedTier);
+    const result: Record<RankedTier, LeaderboardEntry[]> = {} as Record<RankedTier, LeaderboardEntry[]>;
+
+    for (const tier of tiers) {
+      const players = await this.prisma.playerSeason.findMany({
+        where: {
+          seasonId,
+          isPlacementComplete: true,
+          tier: this.mapToRankedTier(tier),
+        },
+        orderBy: [{ mmr: 'desc' }, { wins: 'desc' }],
+        take: limit,
+      });
+
+      result[tier] = players.map((player, index) => ({
+        rank: index + 1,
+        playerId: player.playerId,
+        playerName: `Player_${player.playerId.slice(0, 8)}`,
+        tier: this.mapPrismaTier(player.tier),
+        division: player.division as TierDivision | null,
+        leaguePoints: player.leaguePoints,
+        mmr: player.mmr,
+        wins: player.wins,
+        losses: player.losses,
+        winRate: player.wins + player.losses > 0
+          ? Math.round((player.wins / (player.wins + player.losses)) * 100)
+          : 0,
+      }));
+    }
+
+    return result;
+  }
+
   public async performSoftReset(seasonId: string): Promise<SeasonResetResult[]> {
     const season = await this.getSeasonById(seasonId);
     

@@ -31,6 +31,7 @@ model Season {
   updatedAt                DateTime       @updatedAt
   playerSeasons            PlayerSeason[]
   matchResults             MatchResult[]
+  seasonRewards            SeasonReward[]
 
   @@index([isActive])
   @@index([number])
@@ -104,4 +105,110 @@ model SeasonArchive {
   @@unique([playerId, seasonId])
   @@index([playerId])
   @@index([seasonNumber])
+}
+
+enum RewardType {
+  CURRENCY
+  SKIN
+  BORDER
+  ICON
+  EMOTE
+  TITLE
+  CHEST
+}
+
+enum MilestoneType {
+  FIRST_WIN
+  WIN_STREAK
+  GAMES_PLAYED
+  TIER_REACHED
+  PEAK_MMR
+  PLACEMENT_COMPLETE
+  SEASON_COMPLETE
+}
+
+model SeasonReward {
+  id                String     @id @default(uuid())
+  seasonId          String
+  season            Season     @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  tier              RankedTier
+  rewardType        RewardType
+  rewardId          String
+  rewardName        String
+  rewardDescription String
+  quantity          Int        @default(1)
+  isExclusive       Boolean    @default(false)
+  createdAt         DateTime   @default(now())
+
+  @@unique([seasonId, tier, rewardType, rewardId])
+  @@index([seasonId])
+  @@index([tier])
+}
+
+model PlayerReward {
+  id         String     @id @default(uuid())
+  playerId   String
+  seasonId   String
+  rewardId   String
+  rewardType RewardType
+  rewardName String
+  earnedTier RankedTier
+  claimedAt  DateTime?
+  createdAt  DateTime   @default(now())
+
+  @@unique([playerId, seasonId, rewardId])
+  @@index([playerId])
+  @@index([seasonId])
+}
+
+model PlayerMilestone {
+  id             String        @id @default(uuid())
+  playerId       String
+  seasonId       String
+  milestoneType  MilestoneType
+  milestoneValue Int
+  achievedAt     DateTime      @default(now())
+  rewardClaimed  Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+
+  @@unique([playerId, seasonId, milestoneType, milestoneValue])
+  @@index([playerId])
+  @@index([seasonId])
+  @@index([milestoneType])
+}
+
+model PlayerProgression {
+  id        String     @id @default(uuid())
+  playerId  String
+  seasonId  String
+  date      DateTime   @default(now())
+  mmr       Int
+  tier      RankedTier
+  division  Int?
+  wins      Int
+  losses    Int
+  createdAt DateTime   @default(now())
+
+  @@index([playerId, seasonId])
+  @@index([date])
+}
+
+model PlayerStats {
+  id                String     @id @default(uuid())
+  playerId          String
+  seasonId          String
+  longestWinStreak  Int        @default(0)
+  longestLossStreak Int        @default(0)
+  peakTier          RankedTier @default(BRONZE)
+  peakDivision      Int?       @default(4)
+  totalMMRGained    Int        @default(0)
+  totalMMRLost      Int        @default(0)
+  gamesWithMMRGain  Int        @default(0)
+  gamesWithMMRLoss  Int        @default(0)
+  updatedAt         DateTime   @updatedAt
+  createdAt         DateTime   @default(now())
+
+  @@unique([playerId, seasonId])
+  @@index([playerId])
+  @@index([seasonId])
 }
