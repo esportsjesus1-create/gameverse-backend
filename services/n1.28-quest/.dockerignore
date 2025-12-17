@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+.env
+.env.local
+*.log
+.git
+.gitignore
+README.md
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+.eslintcache
+*.md
