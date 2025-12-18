@@ -1,0 +1,16 @@
+node_modules
+dist
+coverage
+.git
+.gitignore
+*.md
+*.log
+.env*
+.vscode
+.idea
+tests
+jest.config.js
+.eslintrc.js
+tsconfig.json
+docker-compose.yml
+Dockerfile
