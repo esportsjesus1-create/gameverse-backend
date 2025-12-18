@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  camera-stream:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3040:3040"
+    environment:
+      - NODE_ENV=development
+      - PORT=3040
+      - WS_PORT=3040
+      - STUN_SERVER=stun:stun.l.google.com:19302
+      - RECORDING_STORAGE_PATH=/tmp/recordings
+      - MAX_RECORDING_SIZE_MB=1024
+      - MAX_VIEWERS_PER_STREAM=1000
+      - DEFAULT_BITRATE=2500000
+      - MAX_BITRATE=8000000
+      - MIN_BITRATE=500000
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - recordings:/tmp/recordings
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3040/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  camera-stream-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: npm run test
+    environment:
+      - NODE_ENV=test
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./coverage:/app/coverage
+
+volumes:
+  recordings:
