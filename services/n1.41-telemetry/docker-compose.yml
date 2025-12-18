@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  telemetry:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gameverse-telemetry
+    ports:
+      - "3041:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - LOG_LEVEL=info
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/v1/monitoring/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - gameverse-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  telemetry-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: gameverse-telemetry-dev
+    ports:
+      - "3041:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - LOG_LEVEL=debug
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+    networks:
+      - gameverse-network
+
+networks:
+  gameverse-network:
+    driver: bridge
