@@ -22,6 +22,8 @@ wheels/
 
 # Virtual environments
 .env
+.env.*
+!.env.example
 .venv
 env/
 venv/
@@ -32,6 +34,7 @@ ENV/
 .vscode/
 *.swp
 *.swo
+.vscode-test
 
 # Testing
 .pytest_cache/
@@ -39,8 +42,71 @@ ENV/
 htmlcov/
 .tox/
 .nox/
+coverage
+*.lcov
+.nyc_output
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Node.js
+node_modules/
+jspm_packages/
+web_modules/
+.npm
+*.tgz
+.yarn-integrity
+
+# TypeScript
+*.tsbuildinfo
+
+# Cache
+.cache
+.parcel-cache
+.eslintcache
+.stylelintcache
+
+# Build outputs
+.next
+out
+.nuxt
+.svelte-kit/
+**/.vitepress/dist
+**/.vitepress/cache
+.docusaurus
+
+# Serverless
+.serverless/
+
+# Firebase
+.firebase/
 
 # Misc
-*.log
 *.tmp
 .DS_Store
+.tern-port
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Yarn v3
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
