@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  guild-bank:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gameverse-guild-bank
+    ports:
+      - "3024:3024"
+    environment:
+      - NODE_ENV=production
+      - PORT=3024
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/guild_bank?schema=public
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      - JWT_EXPIRES_IN=24h
+      - DEFAULT_APPROVAL_THRESHOLD=2
+      - MAX_APPROVAL_THRESHOLD=5
+      - DEFAULT_DAILY_WITHDRAWAL_LIMIT=10000
+      - DEFAULT_SINGLE_WITHDRAWAL_LIMIT=5000
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - gameverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3024/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: gameverse-guild-bank-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=guild_bank
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - gameverse-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: gameverse-guild-bank-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - gameverse-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
+
+  # Development service with hot reload
+  guild-bank-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: gameverse-guild-bank-dev
+    ports:
+      - "3024:3024"
+    environment:
+      - NODE_ENV=development
+      - PORT=3024
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/guild_bank?schema=public
+      - JWT_SECRET=dev-secret-key
+      - LOG_LEVEL=debug
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - gameverse-network
+    profiles:
+      - dev
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  gameverse-network:
+    driver: bridge
