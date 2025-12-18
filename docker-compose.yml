@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  room-instance:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gameverse-room-instance
+    ports:
+      - "3038:3038"
+    environment:
+      - NODE_ENV=development
+      - PORT=3038
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=gameverse
+      - POSTGRES_PASSWORD=gameverse_secret
+      - POSTGRES_DB=gameverse_rooms
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=development-jwt-secret-change-in-production
+      - DEFAULT_ROOM_CAPACITY=50
+      - MAX_ROOM_CAPACITY=100
+      - ROOM_IDLE_TIMEOUT_MS=3600000
+      - ROOM_CLEANUP_INTERVAL_MS=60000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - gameverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3038/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: gameverse-postgres
+    environment:
+      - POSTGRES_USER=gameverse
+      - POSTGRES_PASSWORD=gameverse_secret
+      - POSTGRES_DB=gameverse_rooms
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/migrations:/docker-entrypoint-initdb.d:ro
+    networks:
+      - gameverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gameverse -d gameverse_rooms"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: gameverse-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - gameverse-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    command: redis-server --appendonly yes
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  gameverse-network:
+    driver: bridge
