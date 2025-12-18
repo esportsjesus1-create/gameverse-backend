@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  fraud-ml:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: gameverse-fraud-ml
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - gameverse-network
+
+  # Development service with hot reload
+  fraud-ml-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: gameverse-fraud-ml-dev
+    ports:
+      - "8001:8000"
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./app:/app/app:ro
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    networks:
+      - gameverse-network
+    profiles:
+      - dev
+
+networks:
+  gameverse-network:
+    driver: bridge
