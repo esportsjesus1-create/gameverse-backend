@@ -19,6 +19,7 @@
     "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts' 'infrastructure/**/*.ts' 'shared/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' 'tests/**/*.ts' 'infrastructure/**/*.ts' 'shared/**/*.ts' --fix",
     "format": "prettier --write 'src/**/*.ts' 'tests/**/*.ts' 'infrastructure/**/*.ts' 'shared/**/*.ts'",
+    "format:check": "prettier --check 'src/**/*.ts' 'tests/**/*.ts' 'infrastructure/**/*.ts' 'shared/**/*.ts'",
     "typecheck": "tsc --noEmit",
     "db:migrate": "ts-node infrastructure/database/migrate.ts",
     "db:migrate:up": "ts-node infrastructure/database/migrate.ts up",

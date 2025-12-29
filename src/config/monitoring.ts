@@ -28,11 +28,6 @@ const metricExporter = new OTLPMetricExporter({
   url: `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318'}/v1/metrics`,
 });
 
-const metricReader = new PeriodicExportingMetricReader({
-  exporter: metricExporter,
-  exportIntervalMillis: 60000,
-});
-
 let sdk: NodeSDK | null = null;
 
 export function initializeOpenTelemetry(): void {
@@ -40,10 +35,16 @@ export function initializeOpenTelemetry(): void {
     return;
   }
 
+  const metricReader = new PeriodicExportingMetricReader({
+    exporter: metricExporter,
+    exportIntervalMillis: 60000,
+  });
+
   sdk = new NodeSDK({
     resource,
     traceExporter,
-    metricReader,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    metricReader: metricReader as any,
     instrumentations: [
       getNodeAutoInstrumentations({
         '@opentelemetry/instrumentation-fs': { enabled: false },

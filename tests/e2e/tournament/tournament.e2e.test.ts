@@ -147,7 +147,7 @@ describe('E2E Tournament Tests', () => {
         entry_fee_currency: 'USD',
       });
 
-      expect(parseFloat(tournament.entry_fee)).toBe(10);
+      expect(Number(tournament.entry_fee)).toBe(10);
       expect(tournament.entry_fee_currency).toBe('USD');
     });
   });
@@ -160,7 +160,7 @@ describe('E2E Tournament Tests', () => {
         prize_pool_currency: 'USD',
       });
 
-      expect(parseFloat(tournament.prize_pool)).toBe(1000);
+      expect(Number(tournament.prize_pool)).toBe(1000);
     });
   });
 
