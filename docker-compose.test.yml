@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=gameverse_test
+      - POSTGRES_USER=gameverse_test
+      - POSTGRES_PASSWORD=gameverse_test_secret
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gameverse_test -d gameverse_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - gameverse-test-network
+    tmpfs:
+      - /var/lib/postgresql/data
+
+  redis-test:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - gameverse-test-network
+    tmpfs:
+      - /data
+
+networks:
+  gameverse-test-network:
+    driver: bridge
