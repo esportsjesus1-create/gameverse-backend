@@ -352,7 +352,7 @@ describe('E2E Season Tests', () => {
       });
 
       await client.query(
-        'UPDATE season_players SET promotion_losses = 3, in_promotion_series = false, promotion_wins = 0, promotion_losses = 0 WHERE season_id = $1 AND user_id = $2',
+        'UPDATE season_players SET in_promotion_series = false, promotion_wins = 0, promotion_losses = 0 WHERE season_id = $1 AND user_id = $2',
         [season.id, user.id]
       );
 
