@@ -10,7 +10,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { SocialFeedService } from './social-feed.service';
 import {
   CreatePostDto,
@@ -34,7 +39,10 @@ export class SocialFeedController {
   @Post('post')
   @ApiOperation({ summary: 'FR-3.1: Post status update' })
   @ApiResponse({ status: 201, description: 'Post created successfully' })
-  async createPost(@CurrentUser('id') userId: string, @Body() dto: CreatePostDto) {
+  async createPost(
+    @CurrentUser('id') userId: string,
+    @Body() dto: CreatePostDto,
+  ) {
     return this.socialFeedService.createPost(userId, dto);
   }
 
@@ -42,7 +50,10 @@ export class SocialFeedController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'FR-3.2: Delete own status' })
   @ApiResponse({ status: 204, description: 'Post deleted' })
-  @ApiResponse({ status: 403, description: 'Cannot delete another user\'s post' })
+  @ApiResponse({
+    status: 403,
+    description: "Cannot delete another user's post",
+  })
   @ApiResponse({ status: 404, description: 'Post not found' })
   async deletePost(
     @CurrentUser('id') userId: string,
@@ -93,7 +104,10 @@ export class SocialFeedController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'FR-3.6: Delete own comment' })
   @ApiResponse({ status: 204, description: 'Comment deleted' })
-  @ApiResponse({ status: 403, description: 'Cannot delete another user\'s comment' })
+  @ApiResponse({
+    status: 403,
+    description: "Cannot delete another user's comment",
+  })
   @ApiResponse({ status: 404, description: 'Comment not found' })
   async deleteComment(
     @CurrentUser('id') userId: string,
@@ -103,8 +117,12 @@ export class SocialFeedController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'FR-3.7: Get feed (friends\' posts)' })
-  @ApiResponse({ status: 200, description: 'Feed retrieved', type: [FeedEventResponseDto] })
+  @ApiOperation({ summary: "FR-3.7: Get feed (friends' posts)" })
+  @ApiResponse({
+    status: 200,
+    description: 'Feed retrieved',
+    type: [FeedEventResponseDto],
+  })
   async getFeed(
     @CurrentUser('id') userId: string,
     @Query() pagination: PaginationDto,
@@ -113,14 +131,22 @@ export class SocialFeedController {
   }
 
   @Get('user/:userId')
-  @ApiOperation({ summary: 'FR-3.8: Get user\'s posts' })
-  @ApiResponse({ status: 200, description: 'User posts retrieved', type: [FeedEventResponseDto] })
+  @ApiOperation({ summary: "FR-3.8: Get user's posts" })
+  @ApiResponse({
+    status: 200,
+    description: 'User posts retrieved',
+    type: [FeedEventResponseDto],
+  })
   async getUserPosts(
     @CurrentUser('id') currentUserId: string,
     @Param('userId') targetUserId: string,
     @Query() pagination: PaginationDto,
   ): Promise<PaginatedResponseDto<FeedEventResponseDto>> {
-    return this.socialFeedService.getUserPosts(currentUserId, targetUserId, pagination);
+    return this.socialFeedService.getUserPosts(
+      currentUserId,
+      targetUserId,
+      pagination,
+    );
   }
 
   @Post('achievement')
@@ -145,7 +171,11 @@ export class SocialFeedController {
 
   @Get('post/:postId/comments')
   @ApiOperation({ summary: 'Get comments for a post' })
-  @ApiResponse({ status: 200, description: 'Comments retrieved', type: [CommentResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'Comments retrieved',
+    type: [CommentResponseDto],
+  })
   async getPostComments(
     @CurrentUser('id') userId: string,
     @Param('postId') postId: string,

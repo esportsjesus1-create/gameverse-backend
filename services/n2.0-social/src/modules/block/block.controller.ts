@@ -10,9 +10,18 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { BlockService } from './block.service';
-import { BlockUserDto, BlockedUserResponseDto, IsBlockedResponseDto } from './dto/block.dto';
+import {
+  BlockUserDto,
+  BlockedUserResponseDto,
+  IsBlockedResponseDto,
+} from './dto/block.dto';
 import { PaginationDto, PaginatedResponseDto } from '../friend/dto/friend.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -30,7 +39,10 @@ export class BlockController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 409, description: 'User already blocked' })
-  async blockUser(@CurrentUser('id') userId: string, @Body() dto: BlockUserDto) {
+  async blockUser(
+    @CurrentUser('id') userId: string,
+    @Body() dto: BlockUserDto,
+  ) {
     return this.blockService.blockUser(userId, dto);
   }
 
@@ -48,7 +60,11 @@ export class BlockController {
 
   @Get()
   @ApiOperation({ summary: 'FR-2.3: List blocked users' })
-  @ApiResponse({ status: 200, description: 'Blocked users list', type: [BlockedUserResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'Blocked users list',
+    type: [BlockedUserResponseDto],
+  })
   async getBlockedUsers(
     @CurrentUser('id') userId: string,
     @Query() pagination: PaginationDto,
@@ -58,7 +74,11 @@ export class BlockController {
 
   @Get('check/:userId')
   @ApiOperation({ summary: 'FR-2.4: Check if user is blocked' })
-  @ApiResponse({ status: 200, description: 'Block status', type: IsBlockedResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Block status',
+    type: IsBlockedResponseDto,
+  })
   async checkIfBlocked(
     @CurrentUser('id') currentUserId: string,
     @Param('userId') userId: string,

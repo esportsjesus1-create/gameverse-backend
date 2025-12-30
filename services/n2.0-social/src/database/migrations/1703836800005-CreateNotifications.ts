@@ -64,7 +64,9 @@ export class CreateNotifications1703836800005 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP INDEX "IDX_notifications_createdAt"`);
     await queryRunner.query(`DROP INDEX "IDX_notifications_recipient_type"`);
-    await queryRunner.query(`DROP INDEX "IDX_notifications_recipient_read_createdAt"`);
+    await queryRunner.query(
+      `DROP INDEX "IDX_notifications_recipient_read_createdAt"`,
+    );
     await queryRunner.query(`DROP INDEX "IDX_notifications_recipientId"`);
     await queryRunner.query(`DROP TABLE "notifications"`);
     await queryRunner.query(`DROP TYPE "notification_priority_enum"`);

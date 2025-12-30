@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import {
   Notification,
   NotificationType,
@@ -8,7 +8,11 @@ import {
 } from '../../database/entities/notification.entity';
 import { SocialProfile } from '../../database/entities/social-profile.entity';
 import { RedisService } from '../presence/redis.service';
-import { NotificationResponseDto, UnreadCountResponseDto, NotificationFilterDto } from './dto/notification.dto';
+import {
+  NotificationResponseDto,
+  UnreadCountResponseDto,
+  NotificationFilterDto,
+} from './dto/notification.dto';
 import { PaginationDto, PaginatedResponseDto } from '../friend/dto/friend.dto';
 
 @Injectable()
@@ -123,7 +127,10 @@ export class NotificationService {
     });
   }
 
-  async markAsRead(userId: string, notificationId: string): Promise<Notification> {
+  async markAsRead(
+    userId: string,
+    notificationId: string,
+  ): Promise<Notification> {
     const notification = await this.notificationRepository.findOne({
       where: { id: notificationId, recipientId: userId },
     });
@@ -157,7 +164,10 @@ export class NotificationService {
     return { count };
   }
 
-  async deleteNotification(userId: string, notificationId: string): Promise<void> {
+  async deleteNotification(
+    userId: string,
+    notificationId: string,
+  ): Promise<void> {
     const notification = await this.notificationRepository.findOne({
       where: { id: notificationId, recipientId: userId },
     });
@@ -245,7 +255,8 @@ export class NotificationService {
       priority: params.priority || NotificationPriority.NORMAL,
     });
 
-    const savedNotification = await this.notificationRepository.save(notification);
+    const savedNotification =
+      await this.notificationRepository.save(notification);
 
     await this.publishNotificationUpdate(params.recipientId, savedNotification);
 

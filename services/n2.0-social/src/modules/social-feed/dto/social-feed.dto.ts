@@ -1,6 +1,16 @@
-import { IsUUID, IsOptional, IsString, MaxLength, IsEnum, IsObject } from 'class-validator';
+import {
+  IsUUID,
+  IsOptional,
+  IsString,
+  MaxLength,
+  IsEnum,
+  IsObject,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { FeedEventType, FeedEventVisibility } from '../../../database/entities/social-feed-event.entity';
+import {
+  FeedEventType,
+  FeedEventVisibility,
+} from '../../../database/entities/social-feed-event.entity';
 
 export class CreatePostDto {
   @ApiProperty({ description: 'Post content' })
@@ -8,7 +18,10 @@ export class CreatePostDto {
   @MaxLength(5000)
   content: string;
 
-  @ApiPropertyOptional({ description: 'Post visibility', enum: FeedEventVisibility })
+  @ApiPropertyOptional({
+    description: 'Post visibility',
+    enum: FeedEventVisibility,
+  })
   @IsOptional()
   @IsEnum(FeedEventVisibility)
   visibility?: FeedEventVisibility = FeedEventVisibility.FRIENDS;
@@ -62,7 +75,10 @@ export class ShareAchievementDto {
   @IsString()
   iconUrl?: string;
 
-  @ApiPropertyOptional({ description: 'Post visibility', enum: FeedEventVisibility })
+  @ApiPropertyOptional({
+    description: 'Post visibility',
+    enum: FeedEventVisibility,
+  })
   @IsOptional()
   @IsEnum(FeedEventVisibility)
   visibility?: FeedEventVisibility = FeedEventVisibility.FRIENDS;
@@ -96,7 +112,10 @@ export class ShareGameResultDto {
   @IsObject()
   metadata?: Record<string, unknown>;
 
-  @ApiPropertyOptional({ description: 'Post visibility', enum: FeedEventVisibility })
+  @ApiPropertyOptional({
+    description: 'Post visibility',
+    enum: FeedEventVisibility,
+  })
   @IsOptional()
   @IsEnum(FeedEventVisibility)
   visibility?: FeedEventVisibility = FeedEventVisibility.FRIENDS;

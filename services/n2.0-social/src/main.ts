@@ -31,7 +31,9 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('GameVerse Social API')
-    .setDescription('Social Module API for GameVerse Platform - Friend Management, Presence, Feed, Notifications')
+    .setDescription(
+      'Social Module API for GameVerse Platform - Friend Management, Presence, Feed, Notifications',
+    )
     .setVersion('1.0')
     .addBearerAuth()
     .addTag('Friends', 'Friend management endpoints')

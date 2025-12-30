@@ -1,9 +1,17 @@
-import { Injectable, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BlockedUser } from '../../database/entities/blocked-user.entity';
 import { SocialProfile } from '../../database/entities/social-profile.entity';
-import { Friendship, FriendshipStatus } from '../../database/entities/friendship.entity';
+import {
+  Friendship,
+  FriendshipStatus,
+} from '../../database/entities/friendship.entity';
 import { Neo4jService } from '../friend/neo4j.service';
 import {
   BlockUserDto,
@@ -52,15 +60,31 @@ export class BlockService {
 
     const existingFriendship = await this.friendshipRepository.findOne({
       where: [
-        { requesterId: blockerId, addresseeId: dto.blockedId, status: FriendshipStatus.ACCEPTED },
-        { requesterId: dto.blockedId, addresseeId: blockerId, status: FriendshipStatus.ACCEPTED },
+        {
+          requesterId: blockerId,
+          addresseeId: dto.blockedId,
+          status: FriendshipStatus.ACCEPTED,
+        },
+        {
+          requesterId: dto.blockedId,
+          addresseeId: blockerId,
+          status: FriendshipStatus.ACCEPTED,
+        },
       ],
     });
 
     if (existingFriendship) {
       await this.friendshipRepository.remove(existingFriendship);
-      await this.profileRepository.decrement({ id: blockerId }, 'friendCount', 1);
-      await this.profileRepository.decrement({ id: dto.blockedId }, 'friendCount', 1);
+      await this.profileRepository.decrement(
+        { id: blockerId },
+        'friendCount',
+        1,
+      );
+      await this.profileRepository.decrement(
+        { id: dto.blockedId },
+        'friendCount',
+        1,
+      );
       await this.neo4jService.removeFriendship(blockerId, dto.blockedId);
     }
 
@@ -134,7 +158,10 @@ export class BlockService {
     };
   }
 
-  async isBlocked(userId1: string, userId2: string): Promise<IsBlockedResponseDto> {
+  async isBlocked(
+    userId1: string,
+    userId2: string,
+  ): Promise<IsBlockedResponseDto> {
     const block1 = await this.blockedUserRepository.findOne({
       where: { blockerId: userId1, blockedId: userId2 },
     });
@@ -156,12 +183,18 @@ export class BlockService {
     return { isBlocked: false };
   }
 
-  async canSendFriendRequest(requesterId: string, addresseeId: string): Promise<boolean> {
+  async canSendFriendRequest(
+    requesterId: string,
+    addresseeId: string,
+  ): Promise<boolean> {
     const blockStatus = await this.isBlocked(requesterId, addresseeId);
     return !blockStatus.isBlocked;
   }
 
-  async isBlockedByUser(blockerId: string, blockedId: string): Promise<boolean> {
+  async isBlockedByUser(
+    blockerId: string,
+    blockedId: string,
+  ): Promise<boolean> {
     const block = await this.blockedUserRepository.findOne({
       where: { blockerId, blockedId },
     });

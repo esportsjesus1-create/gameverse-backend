@@ -1,11 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
+import { INestApplication } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
-import { generateTestUser, generateMockToken, TestUser } from '../setup';
+import { generateTestUser, TestUser } from '../setup';
 
 describe('GameVerse Social Module E2E Tests', () => {
-  let app: INestApplication;
+  let app: INestApplication | undefined;
   let user1: TestUser;
   let user2: TestUser;
   let user3: TestUser;
@@ -30,7 +28,7 @@ describe('GameVerse Social Module E2E Tests', () => {
           requesterId: user1.id,
           addresseeId: user2.id,
           status: 'pending',
-          message: 'Hey, let\'s be friends!',
+          message: "Hey, let's be friends!",
         };
 
         expect(response.status).toBe('pending');
@@ -39,12 +37,18 @@ describe('GameVerse Social Module E2E Tests', () => {
       });
 
       it('should fail when sending request to self', async () => {
-        const error = { statusCode: 400, message: 'Cannot send friend request to yourself' };
+        const error = {
+          statusCode: 400,
+          message: 'Cannot send friend request to yourself',
+        };
         expect(error.statusCode).toBe(400);
       });
 
       it('should fail when user is blocked', async () => {
-        const error = { statusCode: 400, message: 'Cannot send friend request to this user' };
+        const error = {
+          statusCode: 400,
+          message: 'Cannot send friend request to this user',
+        };
         expect(error.statusCode).toBe(400);
       });
     });
@@ -251,7 +255,10 @@ describe('GameVerse Social Module E2E Tests', () => {
 
     describe('E2E-SOCIAL-013: FR-2.5 Blocked users cannot send friend requests', () => {
       it('should prevent blocked user from sending friend request', async () => {
-        const error = { statusCode: 400, message: 'Cannot send friend request to this user' };
+        const error = {
+          statusCode: 400,
+          message: 'Cannot send friend request to this user',
+        };
         expect(error.statusCode).toBe(400);
       });
     });
@@ -289,8 +296,11 @@ describe('GameVerse Social Module E2E Tests', () => {
         expect(statusCode).toBe(204);
       });
 
-      it('should fail when deleting another user\'s post', async () => {
-        const error = { statusCode: 403, message: 'Cannot delete another user\'s post' };
+      it("should fail when deleting another user's post", async () => {
+        const error = {
+          statusCode: 403,
+          message: "Cannot delete another user's post",
+        };
         expect(error.statusCode).toBe(403);
       });
     });
@@ -339,14 +349,17 @@ describe('GameVerse Social Module E2E Tests', () => {
         expect(statusCode).toBe(204);
       });
 
-      it('should fail when deleting another user\'s comment', async () => {
-        const error = { statusCode: 403, message: 'Cannot delete another user\'s comment' };
+      it("should fail when deleting another user's comment", async () => {
+        const error = {
+          statusCode: 403,
+          message: "Cannot delete another user's comment",
+        };
         expect(error.statusCode).toBe(403);
       });
     });
 
-    describe('E2E-SOCIAL-021: FR-3.7 Get feed (friends\' posts)', () => {
-      it('should return friends\' posts in feed', async () => {
+    describe("E2E-SOCIAL-021: FR-3.7 Get feed (friends' posts)", () => {
+      it("should return friends' posts in feed", async () => {
         const response = {
           data: [
             {
@@ -354,7 +367,7 @@ describe('GameVerse Social Module E2E Tests', () => {
               authorId: user2.id,
               authorUsername: user2.username,
               eventType: 'status_update',
-              content: 'Friend\'s post',
+              content: "Friend's post",
               likeCount: 5,
               commentCount: 2,
               isLikedByCurrentUser: false,
@@ -372,8 +385,8 @@ describe('GameVerse Social Module E2E Tests', () => {
       });
     });
 
-    describe('E2E-SOCIAL-022: FR-3.8 Get user\'s posts', () => {
-      it('should return user\'s posts', async () => {
+    describe("E2E-SOCIAL-022: FR-3.8 Get user's posts", () => {
+      it("should return user's posts", async () => {
         const response = {
           data: [
             {
@@ -487,8 +500,8 @@ describe('GameVerse Social Module E2E Tests', () => {
       });
     });
 
-    describe('E2E-SOCIAL-029: FR-4.5 Get friend\'s presence', () => {
-      it('should return friends\' presence', async () => {
+    describe("E2E-SOCIAL-029: FR-4.5 Get friend's presence", () => {
+      it("should return friends' presence", async () => {
         const response = [
           {
             userId: user2.id,
@@ -579,8 +592,8 @@ describe('GameVerse Social Module E2E Tests', () => {
       });
     });
 
-    describe('E2E-SOCIAL-035: FR-5.3 Get other user\'s profile', () => {
-      it('should return other user\'s public profile', async () => {
+    describe("E2E-SOCIAL-035: FR-5.3 Get other user's profile", () => {
+      it("should return other user's public profile", async () => {
         const response = {
           id: user2.id,
           username: user2.username,

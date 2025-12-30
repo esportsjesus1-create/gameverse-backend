@@ -9,7 +9,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { ProfileService } from './profile.service';
 import {
   UpdateProfileDto,
@@ -33,8 +38,14 @@ export class ProfileController {
 
   @Get('me')
   @ApiOperation({ summary: 'FR-5.1: Get own profile' })
-  @ApiResponse({ status: 200, description: 'Own profile', type: FullProfileResponseDto })
-  async getOwnProfile(@CurrentUser('id') userId: string): Promise<FullProfileResponseDto> {
+  @ApiResponse({
+    status: 200,
+    description: 'Own profile',
+    type: FullProfileResponseDto,
+  })
+  async getOwnProfile(
+    @CurrentUser('id') userId: string,
+  ): Promise<FullProfileResponseDto> {
     return this.profileService.getOwnProfile(userId);
   }
 
@@ -49,8 +60,12 @@ export class ProfileController {
   }
 
   @Get('user/:userId')
-  @ApiOperation({ summary: 'FR-5.3: Get other user\'s profile' })
-  @ApiResponse({ status: 200, description: 'User profile', type: ProfileResponseDto })
+  @ApiOperation({ summary: "FR-5.3: Get other user's profile" })
+  @ApiResponse({
+    status: 200,
+    description: 'User profile',
+    type: ProfileResponseDto,
+  })
   @ApiResponse({ status: 403, description: 'Cannot view this profile' })
   @ApiResponse({ status: 404, description: 'Profile not found' })
   async getUserProfile(
@@ -61,7 +76,9 @@ export class ProfileController {
   }
 
   @Put('visibility')
-  @ApiOperation({ summary: 'FR-5.4: Set profile visibility (public/friends/private)' })
+  @ApiOperation({
+    summary: 'FR-5.4: Set profile visibility (public/friends/private)',
+  })
   @ApiResponse({ status: 200, description: 'Visibility updated' })
   async setVisibility(
     @CurrentUser('id') userId: string,
@@ -118,7 +135,11 @@ export class ProfileController {
 
   @Get('search')
   @ApiOperation({ summary: 'FR-5.10: Search users by username' })
-  @ApiResponse({ status: 200, description: 'Search results', type: [UserSearchResultDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'Search results',
+    type: [UserSearchResultDto],
+  })
   async searchUsers(
     @CurrentUser('id') userId: string,
     @Query('query') query: string,

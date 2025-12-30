@@ -8,7 +8,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { PresenceService } from './presence.service';
 import {
   SetPresenceStatusDto,
@@ -84,16 +89,28 @@ export class PresenceController {
   }
 
   @Get('friends')
-  @ApiOperation({ summary: 'FR-4.5: Get friends\' presence' })
-  @ApiResponse({ status: 200, description: 'Friends presence list', type: [PresenceResponseDto] })
-  async getFriendsPresence(@CurrentUser('id') userId: string): Promise<PresenceResponseDto[]> {
+  @ApiOperation({ summary: "FR-4.5: Get friends' presence" })
+  @ApiResponse({
+    status: 200,
+    description: 'Friends presence list',
+    type: [PresenceResponseDto],
+  })
+  async getFriendsPresence(
+    @CurrentUser('id') userId: string,
+  ): Promise<PresenceResponseDto[]> {
     return this.presenceService.getFriendsPresence(userId);
   }
 
   @Get(':userId')
   @ApiOperation({ summary: 'Get user presence' })
-  @ApiResponse({ status: 200, description: 'User presence', type: PresenceResponseDto })
-  async getPresence(@Param('userId') userId: string): Promise<PresenceResponseDto | null> {
+  @ApiResponse({
+    status: 200,
+    description: 'User presence',
+    type: PresenceResponseDto,
+  })
+  async getPresence(
+    @Param('userId') userId: string,
+  ): Promise<PresenceResponseDto | null> {
     return this.presenceService.getPresence(userId);
   }
 

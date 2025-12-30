@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -23,7 +22,9 @@ export function generateTestUser(prefix: string = 'user'): TestUser {
 }
 
 export function generateMockToken(userId: string, username: string): string {
-  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64');
+  const header = Buffer.from(
+    JSON.stringify({ alg: 'HS256', typ: 'JWT' }),
+  ).toString('base64');
   const payload = Buffer.from(
     JSON.stringify({
       sub: userId,
@@ -35,7 +36,11 @@ export function generateMockToken(userId: string, username: string): string {
   return `${header}.${payload}.${signature}`;
 }
 
-export async function createTestingModule(imports: unknown[]): Promise<TestingModule> {
+export async function createTestingModule(
+  imports: NonNullable<
+    Parameters<typeof Test.createTestingModule>[0]['imports']
+  >,
+): Promise<TestingModule> {
   return Test.createTestingModule({
     imports: [
       ConfigModule.forRoot({
@@ -66,7 +71,9 @@ export async function createTestingModule(imports: unknown[]): Promise<TestingMo
   }).compile();
 }
 
-export async function setupTestApp(module: TestingModule): Promise<INestApplication> {
+export async function setupTestApp(
+  module: TestingModule,
+): Promise<INestApplication> {
   const app = module.createNestApplication();
   app.useGlobalPipes(
     new ValidationPipe({

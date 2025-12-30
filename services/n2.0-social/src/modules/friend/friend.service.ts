@@ -1,7 +1,15 @@
-import { Injectable, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Friendship, FriendshipStatus } from '../../database/entities/friendship.entity';
+import {
+  Friendship,
+  FriendshipStatus,
+} from '../../database/entities/friendship.entity';
 import { SocialProfile } from '../../database/entities/social-profile.entity';
 import { BlockedUser } from '../../database/entities/blocked-user.entity';
 import { NotificationService } from '../notification/notification.service';
@@ -28,7 +36,10 @@ export class FriendService {
     private readonly neo4jService: Neo4jService,
   ) {}
 
-  async sendFriendRequest(requesterId: string, dto: SendFriendRequestDto): Promise<Friendship> {
+  async sendFriendRequest(
+    requesterId: string,
+    dto: SendFriendRequestDto,
+  ): Promise<Friendship> {
     if (requesterId === dto.addresseeId) {
       throw new BadRequestException('Cannot send friend request to yourself');
     }
@@ -95,9 +106,16 @@ export class FriendService {
     return savedFriendship;
   }
 
-  async acceptFriendRequest(userId: string, requestId: string): Promise<Friendship> {
+  async acceptFriendRequest(
+    userId: string,
+    requestId: string,
+  ): Promise<Friendship> {
     const friendship = await this.friendshipRepository.findOne({
-      where: { id: requestId, addresseeId: userId, status: FriendshipStatus.PENDING },
+      where: {
+        id: requestId,
+        addresseeId: userId,
+        status: FriendshipStatus.PENDING,
+      },
       relations: ['requester', 'addressee'],
     });
 
@@ -111,7 +129,11 @@ export class FriendService {
     const savedFriendship = await this.friendshipRepository.save(friendship);
 
     await this.profileRepository.increment({ id: userId }, 'friendCount', 1);
-    await this.profileRepository.increment({ id: friendship.requesterId }, 'friendCount', 1);
+    await this.profileRepository.increment(
+      { id: friendship.requesterId },
+      'friendCount',
+      1,
+    );
 
     await this.neo4jService.createFriendship(userId, friendship.requesterId);
 
@@ -124,9 +146,16 @@ export class FriendService {
     return savedFriendship;
   }
 
-  async rejectFriendRequest(userId: string, requestId: string): Promise<Friendship> {
+  async rejectFriendRequest(
+    userId: string,
+    requestId: string,
+  ): Promise<Friendship> {
     const friendship = await this.friendshipRepository.findOne({
-      where: { id: requestId, addresseeId: userId, status: FriendshipStatus.PENDING },
+      where: {
+        id: requestId,
+        addresseeId: userId,
+        status: FriendshipStatus.PENDING,
+      },
     });
 
     if (!friendship) {
@@ -139,7 +168,11 @@ export class FriendService {
 
   async cancelFriendRequest(userId: string, requestId: string): Promise<void> {
     const friendship = await this.friendshipRepository.findOne({
-      where: { id: requestId, requesterId: userId, status: FriendshipStatus.PENDING },
+      where: {
+        id: requestId,
+        requesterId: userId,
+        status: FriendshipStatus.PENDING,
+      },
     });
 
     if (!friendship) {
@@ -153,8 +186,16 @@ export class FriendService {
   async removeFriend(userId: string, friendId: string): Promise<void> {
     const friendship = await this.friendshipRepository.findOne({
       where: [
-        { requesterId: userId, addresseeId: friendId, status: FriendshipStatus.ACCEPTED },
-        { requesterId: friendId, addresseeId: userId, status: FriendshipStatus.ACCEPTED },
+        {
+          requesterId: userId,
+          addresseeId: friendId,
+          status: FriendshipStatus.ACCEPTED,
+        },
+        {
+          requesterId: friendId,
+          addresseeId: userId,
+          status: FriendshipStatus.ACCEPTED,
+        },
       ],
     });
 
@@ -192,14 +233,18 @@ export class FriendService {
 
     const data: FriendListResponseDto[] = friendships.map((f) => {
       const friend = f.requesterId === userId ? f.addressee : f.requester;
-      const presence = f.requesterId === userId ? f.addressee?.presence : f.requester?.presence;
+      const presence =
+        f.requesterId === userId
+          ? f.addressee?.presence
+          : f.requester?.presence;
 
       return {
         id: friend.id,
         username: friend.username,
         displayName: friend.displayName,
         avatarUrl: friend.avatarUrl || undefined,
-        isOnline: presence?.status === 'online' || presence?.status === 'in_game',
+        isOnline:
+          presence?.status === 'online' || presence?.status === 'in_game',
         currentActivity: presence?.currentActivity || undefined,
         friendsSince: f.acceptedAt || f.createdAt,
       };
@@ -289,22 +334,39 @@ export class FriendService {
   async areFriends(userId1: string, userId2: string): Promise<boolean> {
     const friendship = await this.friendshipRepository.findOne({
       where: [
-        { requesterId: userId1, addresseeId: userId2, status: FriendshipStatus.ACCEPTED },
-        { requesterId: userId2, addresseeId: userId1, status: FriendshipStatus.ACCEPTED },
+        {
+          requesterId: userId1,
+          addresseeId: userId2,
+          status: FriendshipStatus.ACCEPTED,
+        },
+        {
+          requesterId: userId2,
+          addresseeId: userId1,
+          status: FriendshipStatus.ACCEPTED,
+        },
       ],
     });
     return !!friendship;
   }
 
-  async getMutualFriends(userId1: string, userId2: string): Promise<SocialProfile[]> {
+  async getMutualFriends(
+    userId1: string,
+    userId2: string,
+  ): Promise<SocialProfile[]> {
     return this.neo4jService.getMutualFriends(userId1, userId2);
   }
 
-  async getFriendsOfFriends(userId: string, limit: number = 20): Promise<SocialProfile[]> {
+  async getFriendsOfFriends(
+    userId: string,
+    limit: number = 20,
+  ): Promise<SocialProfile[]> {
     return this.neo4jService.getFriendsOfFriends(userId, limit);
   }
 
-  async getThirdDegreeFriends(userId: string, limit: number = 20): Promise<SocialProfile[]> {
+  async getThirdDegreeFriends(
+    userId: string,
+    limit: number = 20,
+  ): Promise<SocialProfile[]> {
     return this.neo4jService.getThirdDegreeFriends(userId, limit);
   }
 }

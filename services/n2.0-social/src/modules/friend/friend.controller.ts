@@ -10,7 +10,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { FriendService } from './friend.service';
 import {
   SendFriendRequestDto,
@@ -35,7 +40,10 @@ export class FriendController {
   @ApiResponse({ status: 201, description: 'Friend request sent successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @ApiResponse({ status: 409, description: 'Already friends or request pending' })
+  @ApiResponse({
+    status: 409,
+    description: 'Already friends or request pending',
+  })
   async sendFriendRequest(
     @CurrentUser('id') userId: string,
     @Body() dto: SendFriendRequestDto,
@@ -93,7 +101,11 @@ export class FriendController {
 
   @Get()
   @ApiOperation({ summary: 'FR-1.6: List friends with pagination' })
-  @ApiResponse({ status: 200, description: 'Friends list', type: [FriendListResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'Friends list',
+    type: [FriendListResponseDto],
+  })
   async getFriends(
     @CurrentUser('id') userId: string,
     @Query() pagination: PaginationDto,
@@ -103,7 +115,11 @@ export class FriendController {
 
   @Get('requests/incoming')
   @ApiOperation({ summary: 'FR-1.7: List pending friend requests (incoming)' })
-  @ApiResponse({ status: 200, description: 'Incoming friend requests', type: [FriendRequestResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'Incoming friend requests',
+    type: [FriendRequestResponseDto],
+  })
   async getPendingFriendRequests(
     @CurrentUser('id') userId: string,
     @Query() pagination: PaginationDto,
@@ -113,7 +129,11 @@ export class FriendController {
 
   @Get('requests/outgoing')
   @ApiOperation({ summary: 'FR-1.8: List sent friend requests (outgoing)' })
-  @ApiResponse({ status: 200, description: 'Outgoing friend requests', type: [SentFriendRequestResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'Outgoing friend requests',
+    type: [SentFriendRequestResponseDto],
+  })
   async getSentFriendRequests(
     @CurrentUser('id') userId: string,
     @Query() pagination: PaginationDto,

@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import {
@@ -9,7 +14,10 @@ import {
   FeedEventComment,
 } from '../../database/entities/social-feed-event.entity';
 import { SocialProfile } from '../../database/entities/social-profile.entity';
-import { Friendship, FriendshipStatus } from '../../database/entities/friendship.entity';
+import {
+  Friendship,
+  FriendshipStatus,
+} from '../../database/entities/friendship.entity';
 import { BlockedUser } from '../../database/entities/blocked-user.entity';
 import { NotificationService } from '../notification/notification.service';
 import {
@@ -40,8 +48,13 @@ export class SocialFeedService {
     private readonly notificationService: NotificationService,
   ) {}
 
-  async createPost(authorId: string, dto: CreatePostDto): Promise<SocialFeedEvent> {
-    const profile = await this.profileRepository.findOne({ where: { id: authorId } });
+  async createPost(
+    authorId: string,
+    dto: CreatePostDto,
+  ): Promise<SocialFeedEvent> {
+    const profile = await this.profileRepository.findOne({
+      where: { id: authorId },
+    });
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }
@@ -67,7 +80,7 @@ export class SocialFeedService {
     }
 
     if (event.authorId !== userId) {
-      throw new ForbiddenException('Cannot delete another user\'s post');
+      throw new ForbiddenException("Cannot delete another user's post");
     }
 
     event.isDeleted = true;
@@ -105,7 +118,9 @@ export class SocialFeedService {
     await this.feedEventRepository.increment({ id: postId }, 'likeCount', 1);
 
     if (event.authorId !== userId) {
-      const likerProfile = await this.profileRepository.findOne({ where: { id: userId } });
+      const likerProfile = await this.profileRepository.findOne({
+        where: { id: userId },
+      });
       if (likerProfile) {
         await this.notificationService.createPostLikedNotification(
           event.authorId,
@@ -168,7 +183,9 @@ export class SocialFeedService {
     await this.feedEventRepository.increment({ id: postId }, 'commentCount', 1);
 
     if (event.authorId !== userId) {
-      const commenterProfile = await this.profileRepository.findOne({ where: { id: userId } });
+      const commenterProfile = await this.profileRepository.findOne({
+        where: { id: userId },
+      });
       if (commenterProfile) {
         await this.notificationService.createPostCommentedNotification(
           event.authorId,
@@ -192,12 +209,16 @@ export class SocialFeedService {
     }
 
     if (comment.authorId !== userId) {
-      throw new ForbiddenException('Cannot delete another user\'s comment');
+      throw new ForbiddenException("Cannot delete another user's comment");
     }
 
     comment.isDeleted = true;
     await this.commentRepository.save(comment);
-    await this.feedEventRepository.decrement({ id: comment.eventId }, 'commentCount', 1);
+    await this.feedEventRepository.decrement(
+      { id: comment.eventId },
+      'commentCount',
+      1,
+    );
   }
 
   async getFeed(
@@ -210,19 +231,24 @@ export class SocialFeedService {
     const friendIds = await this.getFriendIds(userId);
     const blockedIds = await this.getBlockedUserIds(userId);
 
-    const authorIds = [userId, ...friendIds].filter((id) => !blockedIds.includes(id));
+    const authorIds = [userId, ...friendIds].filter(
+      (id) => !blockedIds.includes(id),
+    );
 
     const [events, total] = await this.feedEventRepository
       .createQueryBuilder('e')
       .leftJoinAndSelect('e.author', 'author')
       .where('e.authorId IN (:...authorIds)', { authorIds })
       .andWhere('e.isDeleted = false')
-      .andWhere('(e.visibility = :public OR e.visibility = :friends OR (e.visibility = :private AND e.authorId = :userId))', {
-        public: FeedEventVisibility.PUBLIC,
-        friends: FeedEventVisibility.FRIENDS,
-        private: FeedEventVisibility.PRIVATE,
-        userId,
-      })
+      .andWhere(
+        '(e.visibility = :public OR e.visibility = :friends OR (e.visibility = :private AND e.authorId = :userId))',
+        {
+          public: FeedEventVisibility.PUBLIC,
+          friends: FeedEventVisibility.FRIENDS,
+          private: FeedEventVisibility.PRIVATE,
+          userId,
+        },
+      )
       .skip(skip)
       .take(limit)
       .orderBy('e.createdAt', 'DESC')
@@ -310,11 +336,12 @@ export class SocialFeedService {
       .getManyAndCount();
 
     const eventIds = events.map((e) => e.id);
-    const userLikes = eventIds.length > 0
-      ? await this.likeRepository.find({
-          where: { eventId: In(eventIds), userId: currentUserId },
-        })
-      : [];
+    const userLikes =
+      eventIds.length > 0
+        ? await this.likeRepository.find({
+            where: { eventId: In(eventIds), userId: currentUserId },
+          })
+        : [];
     const likedEventIds = new Set(userLikes.map((l) => l.eventId));
 
     const data: FeedEventResponseDto[] = events.map((e) => ({
@@ -343,8 +370,13 @@ export class SocialFeedService {
     };
   }
 
-  async shareAchievement(userId: string, dto: ShareAchievementDto): Promise<SocialFeedEvent> {
-    const profile = await this.profileRepository.findOne({ where: { id: userId } });
+  async shareAchievement(
+    userId: string,
+    dto: ShareAchievementDto,
+  ): Promise<SocialFeedEvent> {
+    const profile = await this.profileRepository.findOne({
+      where: { id: userId },
+    });
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }
@@ -369,8 +401,13 @@ export class SocialFeedService {
     return this.feedEventRepository.save(event);
   }
 
-  async shareGameResult(userId: string, dto: ShareGameResultDto): Promise<SocialFeedEvent> {
-    const profile = await this.profileRepository.findOne({ where: { id: userId } });
+  async shareGameResult(
+    userId: string,
+    dto: ShareGameResultDto,
+  ): Promise<SocialFeedEvent> {
+    const profile = await this.profileRepository.findOne({
+      where: { id: userId },
+    });
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }
@@ -446,7 +483,10 @@ export class SocialFeedService {
     };
   }
 
-  private async canViewPost(userId: string, event: SocialFeedEvent): Promise<boolean> {
+  private async canViewPost(
+    userId: string,
+    event: SocialFeedEvent,
+  ): Promise<boolean> {
     if (event.authorId === userId) return true;
     if (event.visibility === FeedEventVisibility.PUBLIC) return true;
 
@@ -478,14 +518,24 @@ export class SocialFeedService {
       where: [{ blockerId: userId }, { blockedId: userId }],
     });
 
-    return blocks.map((b) => (b.blockerId === userId ? b.blockedId : b.blockerId));
+    return blocks.map((b) =>
+      b.blockerId === userId ? b.blockedId : b.blockerId,
+    );
   }
 
   private async areFriends(userId1: string, userId2: string): Promise<boolean> {
     const friendship = await this.friendshipRepository.findOne({
       where: [
-        { requesterId: userId1, addresseeId: userId2, status: FriendshipStatus.ACCEPTED },
-        { requesterId: userId2, addresseeId: userId1, status: FriendshipStatus.ACCEPTED },
+        {
+          requesterId: userId1,
+          addresseeId: userId2,
+          status: FriendshipStatus.ACCEPTED,
+        },
+        {
+          requesterId: userId2,
+          addresseeId: userId1,
+          status: FriendshipStatus.ACCEPTED,
+        },
       ],
     });
     return !!friendship;

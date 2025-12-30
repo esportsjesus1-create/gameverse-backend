@@ -20,10 +20,19 @@ export default () => ({
   gamerstake: {
     apiUrl: process.env.GAMERSTAKE_API_URL || 'https://api.gamerstake.com',
     apiKey: process.env.GAMERSTAKE_API_KEY || '',
-    syncIntervalMs: parseInt(process.env.GAMERSTAKE_SYNC_INTERVAL_MS || '300000', 10),
+    syncIntervalMs: parseInt(
+      process.env.GAMERSTAKE_SYNC_INTERVAL_MS || '300000',
+      10,
+    ),
   },
   presence: {
-    offlineTimeoutMs: parseInt(process.env.PRESENCE_OFFLINE_TIMEOUT_MS || '300000', 10),
-    heartbeatIntervalMs: parseInt(process.env.PRESENCE_HEARTBEAT_INTERVAL_MS || '30000', 10),
+    offlineTimeoutMs: parseInt(
+      process.env.PRESENCE_OFFLINE_TIMEOUT_MS || '300000',
+      10,
+    ),
+    heartbeatIntervalMs: parseInt(
+      process.env.PRESENCE_HEARTBEAT_INTERVAL_MS || '30000',
+      10,
+    ),
   },
 });

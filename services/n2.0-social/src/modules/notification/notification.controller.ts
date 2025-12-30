@@ -9,7 +9,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { NotificationService } from './notification.service';
 import {
   NotificationResponseDto,
@@ -29,13 +34,21 @@ export class NotificationController {
 
   @Get()
   @ApiOperation({ summary: 'Get notifications' })
-  @ApiResponse({ status: 200, description: 'Notifications list', type: [NotificationResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'Notifications list',
+    type: [NotificationResponseDto],
+  })
   async getNotifications(
     @CurrentUser('id') userId: string,
     @Query() pagination: PaginationDto,
     @Query() filter: NotificationFilterDto,
   ): Promise<PaginatedResponseDto<NotificationResponseDto>> {
-    return this.notificationService.getNotifications(userId, pagination, filter);
+    return this.notificationService.getNotifications(
+      userId,
+      pagination,
+      filter,
+    );
   }
 
   @Post(':notificationId/read')
@@ -60,8 +73,14 @@ export class NotificationController {
 
   @Get('unread-count')
   @ApiOperation({ summary: 'FR-6.9: Get unread notification count' })
-  @ApiResponse({ status: 200, description: 'Unread count', type: UnreadCountResponseDto })
-  async getUnreadCount(@CurrentUser('id') userId: string): Promise<UnreadCountResponseDto> {
+  @ApiResponse({
+    status: 200,
+    description: 'Unread count',
+    type: UnreadCountResponseDto,
+  })
+  async getUnreadCount(
+    @CurrentUser('id') userId: string,
+  ): Promise<UnreadCountResponseDto> {
     return this.notificationService.getUnreadCount(userId);
   }
 

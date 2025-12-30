@@ -2,9 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, LessThan } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { UserPresence, PresenceStatus } from '../../database/entities/user-presence.entity';
+import {
+  UserPresence,
+  PresenceStatus,
+} from '../../database/entities/user-presence.entity';
 import { SocialProfile } from '../../database/entities/social-profile.entity';
-import { Friendship, FriendshipStatus } from '../../database/entities/friendship.entity';
+import {
+  Friendship,
+  FriendshipStatus,
+} from '../../database/entities/friendship.entity';
 import { RedisService, PresenceUpdate } from './redis.service';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -28,7 +34,8 @@ export class PresenceService {
     private readonly redisService: RedisService,
     private readonly configService: ConfigService,
   ) {
-    this.offlineTimeoutMs = this.configService.get<number>('presence.offlineTimeoutMs') || 300000;
+    this.offlineTimeoutMs =
+      this.configService.get<number>('presence.offlineTimeoutMs') || 300000;
   }
 
   async setOnline(userId: string): Promise<UserPresence> {
@@ -43,11 +50,17 @@ export class PresenceService {
     return this.updatePresenceStatus(userId, PresenceStatus.AWAY);
   }
 
-  async setStatus(userId: string, dto: SetPresenceStatusDto): Promise<UserPresence> {
+  async setStatus(
+    userId: string,
+    dto: SetPresenceStatusDto,
+  ): Promise<UserPresence> {
     return this.updatePresenceStatus(userId, dto.status);
   }
 
-  async setCustomMessage(userId: string, dto: SetCustomMessageDto): Promise<UserPresence> {
+  async setCustomMessage(
+    userId: string,
+    dto: SetCustomMessageDto,
+  ): Promise<UserPresence> {
     const presence = await this.getOrCreatePresence(userId);
     presence.customMessage = dto.customMessage || null;
     presence.lastActivityAt = new Date();
@@ -59,7 +72,10 @@ export class PresenceService {
     return savedPresence;
   }
 
-  async setActivity(userId: string, dto: SetActivityDto): Promise<UserPresence> {
+  async setActivity(
+    userId: string,
+    dto: SetActivityDto,
+  ): Promise<UserPresence> {
     const presence = await this.getOrCreatePresence(userId);
 
     if (dto.currentActivity !== undefined) {
@@ -89,7 +105,9 @@ export class PresenceService {
     const cachedPresence = await this.redisService.getCachedPresence(userId);
 
     if (cachedPresence) {
-      const profile = await this.profileRepository.findOne({ where: { id: userId } });
+      const profile = await this.profileRepository.findOne({
+        where: { id: userId },
+      });
       if (profile) {
         return {
           userId,
@@ -134,7 +152,8 @@ export class PresenceService {
       return [];
     }
 
-    const cachedPresences = await this.redisService.getCachedPresences(friendIds);
+    const cachedPresences =
+      await this.redisService.getCachedPresences(friendIds);
 
     const profiles = await this.profileRepository.find({
       where: { id: In(friendIds) },
@@ -215,7 +234,11 @@ export class PresenceService {
 
     const stalePresences = await this.presenceRepository.find({
       where: {
-        status: In([PresenceStatus.ONLINE, PresenceStatus.AWAY, PresenceStatus.IN_GAME]),
+        status: In([
+          PresenceStatus.ONLINE,
+          PresenceStatus.AWAY,
+          PresenceStatus.IN_GAME,
+        ]),
         lastSeenAt: LessThan(cutoffTime),
       },
     });
@@ -227,11 +250,14 @@ export class PresenceService {
     }
   }
 
-  async syncWithGamerstake(userId: string, gamerstakePresence: {
-    status: string;
-    activity?: string;
-    gameName?: string;
-  }): Promise<UserPresence> {
+  async syncWithGamerstake(
+    userId: string,
+    gamerstakePresence: {
+      status: string;
+      activity?: string;
+      gameName?: string;
+    },
+  ): Promise<UserPresence> {
     const presence = await this.getOrCreatePresence(userId);
 
     const statusMap: Record<string, PresenceStatus> = {
@@ -242,7 +268,8 @@ export class PresenceService {
       in_game: PresenceStatus.IN_GAME,
     };
 
-    presence.status = statusMap[gamerstakePresence.status] || PresenceStatus.ONLINE;
+    presence.status =
+      statusMap[gamerstakePresence.status] || PresenceStatus.ONLINE;
     presence.currentActivity = gamerstakePresence.activity || null;
     presence.currentGameName = gamerstakePresence.gameName || null;
     presence.isGamerstakeSynced = true;
@@ -281,7 +308,9 @@ export class PresenceService {
     let presence = await this.presenceRepository.findOne({ where: { userId } });
 
     if (!presence) {
-      const profile = await this.profileRepository.findOne({ where: { id: userId } });
+      const profile = await this.profileRepository.findOne({
+        where: { id: userId },
+      });
       if (!profile) {
         throw new NotFoundException('Profile not found');
       }

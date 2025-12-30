@@ -7,7 +7,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { GamerstakeService } from './gamerstake.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -34,7 +39,10 @@ export class GamerstakeController {
     @CurrentUser('id') userId: string,
     @Body() dto: LinkGamerstakeDto,
   ) {
-    return this.gamerstakeService.linkGamerstakeAccount(userId, dto.gamerstakeUserId);
+    return this.gamerstakeService.linkGamerstakeAccount(
+      userId,
+      dto.gamerstakeUserId,
+    );
   }
 
   @Delete('link')

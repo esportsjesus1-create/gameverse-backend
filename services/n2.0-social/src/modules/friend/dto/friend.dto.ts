@@ -1,4 +1,12 @@
-import { IsUUID, IsOptional, IsString, MaxLength, IsInt, Min, Max } from 'class-validator';
+import {
+  IsUUID,
+  IsOptional,
+  IsString,
+  MaxLength,
+  IsInt,
+  Min,
+  Max,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SendFriendRequestDto {
@@ -6,7 +14,9 @@ export class SendFriendRequestDto {
   @IsUUID()
   addresseeId: string;
 
-  @ApiPropertyOptional({ description: 'Optional message with the friend request' })
+  @ApiPropertyOptional({
+    description: 'Optional message with the friend request',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(500)

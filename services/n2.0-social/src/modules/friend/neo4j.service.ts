@@ -10,9 +10,12 @@ export class Neo4jService implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly configService: ConfigService) {}
 
   async onModuleInit(): Promise<void> {
-    const uri = this.configService.get<string>('neo4j.uri') || 'bolt://localhost:7687';
-    const username = this.configService.get<string>('neo4j.username') || 'neo4j';
-    const password = this.configService.get<string>('neo4j.password') || 'password';
+    const uri =
+      this.configService.get<string>('neo4j.uri') || 'bolt://localhost:7687';
+    const username =
+      this.configService.get<string>('neo4j.username') || 'neo4j';
+    const password =
+      this.configService.get<string>('neo4j.password') || 'password';
 
     this.driver = neo4j.driver(uri, neo4j.auth.basic(username, password));
 
@@ -98,7 +101,10 @@ export class Neo4jService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async getMutualFriends(userId1: string, userId2: string): Promise<SocialProfile[]> {
+  async getMutualFriends(
+    userId1: string,
+    userId2: string,
+  ): Promise<SocialProfile[]> {
     const session = this.getSession();
     try {
       const result = await session.run(
@@ -123,7 +129,10 @@ export class Neo4jService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async getFriendsOfFriends(userId: string, limit: number = 20): Promise<SocialProfile[]> {
+  async getFriendsOfFriends(
+    userId: string,
+    limit: number = 20,
+  ): Promise<SocialProfile[]> {
     const session = this.getSession();
     try {
       const result = await session.run(
@@ -153,7 +162,10 @@ export class Neo4jService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async getThirdDegreeFriends(userId: string, limit: number = 20): Promise<SocialProfile[]> {
+  async getThirdDegreeFriends(
+    userId: string,
+    limit: number = 20,
+  ): Promise<SocialProfile[]> {
     const session = this.getSession();
     try {
       const result = await session.run(
@@ -183,7 +195,9 @@ export class Neo4jService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async syncFriendGraph(friendships: Array<{ userId1: string; userId2: string }>): Promise<void> {
+  async syncFriendGraph(
+    friendships: Array<{ userId1: string; userId2: string }>,
+  ): Promise<void> {
     const session = this.getSession();
     try {
       for (const { userId1, userId2 } of friendships) {

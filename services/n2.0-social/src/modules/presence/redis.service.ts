@@ -80,7 +80,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return null;
   }
 
-  async getCachedPresences(userIds: string[]): Promise<Map<string, PresenceUpdate>> {
+  async getCachedPresences(
+    userIds: string[],
+  ): Promise<Map<string, PresenceUpdate>> {
     const result = new Map<string, PresenceUpdate>();
 
     if (userIds.length === 0) return result;

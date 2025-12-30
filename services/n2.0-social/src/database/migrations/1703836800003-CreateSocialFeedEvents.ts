@@ -101,7 +101,9 @@ export class CreateSocialFeedEvents1703836800003 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP INDEX "IDX_feed_event_comments_event_createdAt"`);
+    await queryRunner.query(
+      `DROP INDEX "IDX_feed_event_comments_event_createdAt"`,
+    );
     await queryRunner.query(`DROP INDEX "IDX_feed_event_comments_authorId"`);
     await queryRunner.query(`DROP INDEX "IDX_feed_event_comments_eventId"`);
     await queryRunner.query(`DROP TABLE "feed_event_comments"`);
@@ -111,7 +113,9 @@ export class CreateSocialFeedEvents1703836800003 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE "feed_event_likes"`);
     await queryRunner.query(`DROP INDEX "IDX_social_feed_events_visibility"`);
     await queryRunner.query(`DROP INDEX "IDX_social_feed_events_eventType"`);
-    await queryRunner.query(`DROP INDEX "IDX_social_feed_events_author_createdAt"`);
+    await queryRunner.query(
+      `DROP INDEX "IDX_social_feed_events_author_createdAt"`,
+    );
     await queryRunner.query(`DROP INDEX "IDX_social_feed_events_authorId"`);
     await queryRunner.query(`DROP TABLE "social_feed_events"`);
     await queryRunner.query(`DROP TYPE "feed_event_visibility_enum"`);

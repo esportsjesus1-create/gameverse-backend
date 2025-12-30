@@ -1,6 +1,9 @@
 import { IsUUID, IsOptional, IsBoolean, IsArray } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { NotificationType, NotificationPriority } from '../../../database/entities/notification.entity';
+import {
+  NotificationType,
+  NotificationPriority,
+} from '../../../database/entities/notification.entity';
 
 export class MarkAsReadDto {
   @ApiProperty({ description: 'Notification ID' })
@@ -65,7 +68,10 @@ export class UnreadCountResponseDto {
 }
 
 export class NotificationFilterDto {
-  @ApiPropertyOptional({ description: 'Filter by type', enum: NotificationType })
+  @ApiPropertyOptional({
+    description: 'Filter by type',
+    enum: NotificationType,
+  })
   @IsOptional()
   type?: NotificationType;
 

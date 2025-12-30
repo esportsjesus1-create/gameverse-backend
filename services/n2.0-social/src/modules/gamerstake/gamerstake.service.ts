@@ -3,8 +3,14 @@ import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SocialProfile, GamingPlatform } from '../../database/entities/social-profile.entity';
-import { Friendship, FriendshipStatus } from '../../database/entities/friendship.entity';
+import {
+  SocialProfile,
+  GamingPlatform,
+} from '../../database/entities/social-profile.entity';
+import {
+  Friendship,
+  FriendshipStatus,
+} from '../../database/entities/friendship.entity';
 import { FriendService } from '../friend/friend.service';
 import { PresenceService } from '../presence/presence.service';
 import { ProfileService } from '../profile/profile.service';
@@ -52,9 +58,12 @@ export class GamerstakeService {
     private readonly profileService: ProfileService,
     private readonly neo4jService: Neo4jService,
   ) {
-    this.apiUrl = this.configService.get<string>('gamerstake.apiUrl') || 'https://api.gamerstake.com';
+    this.apiUrl =
+      this.configService.get<string>('gamerstake.apiUrl') ||
+      'https://api.gamerstake.com';
     this.apiKey = this.configService.get<string>('gamerstake.apiKey') || '';
-    this.syncIntervalMs = this.configService.get<number>('gamerstake.syncIntervalMs') || 300000;
+    this.syncIntervalMs =
+      this.configService.get<number>('gamerstake.syncIntervalMs') || 300000;
   }
 
   @Cron(CronExpression.EVERY_5_MINUTES)
@@ -66,17 +75,24 @@ export class GamerstakeService {
         where: { gamerstakeUserId: undefined },
       });
 
-      const linkedProfiles = profilesWithGamerstake.filter((p) => p.gamerstakeUserId);
+      const linkedProfiles = profilesWithGamerstake.filter(
+        (p) => p.gamerstakeUserId,
+      );
 
       for (const profile of linkedProfiles) {
         try {
           await this.syncUserFriends(profile);
         } catch (error) {
-          this.logger.error(`Failed to sync friends for user ${profile.id}:`, error);
+          this.logger.error(
+            `Failed to sync friends for user ${profile.id}:`,
+            error,
+          );
         }
       }
 
-      this.logger.log(`Completed friend graph sync for ${linkedProfiles.length} users`);
+      this.logger.log(
+        `Completed friend graph sync for ${linkedProfiles.length} users`,
+      );
     } catch (error) {
       this.logger.error('Friend graph sync failed:', error);
     }
@@ -91,20 +107,32 @@ export class GamerstakeService {
         where: { gamerstakeUserId: undefined },
       });
 
-      const linkedProfiles = profilesWithGamerstake.filter((p) => p.gamerstakeUserId);
+      const linkedProfiles = profilesWithGamerstake.filter(
+        (p) => p.gamerstakeUserId,
+      );
 
       for (const profile of linkedProfiles) {
         try {
-          const gamerstakePresence = await this.fetchGamerstakePresence(profile.gamerstakeUserId!);
+          const gamerstakePresence = await this.fetchGamerstakePresence(
+            profile.gamerstakeUserId!,
+          );
           if (gamerstakePresence) {
-            await this.presenceService.syncWithGamerstake(profile.id, gamerstakePresence);
+            await this.presenceService.syncWithGamerstake(
+              profile.id,
+              gamerstakePresence,
+            );
           }
         } catch (error) {
-          this.logger.error(`Failed to sync presence for user ${profile.id}:`, error);
+          this.logger.error(
+            `Failed to sync presence for user ${profile.id}:`,
+            error,
+          );
         }
       }
 
-      this.logger.log(`Completed presence sync for ${linkedProfiles.length} users`);
+      this.logger.log(
+        `Completed presence sync for ${linkedProfiles.length} users`,
+      );
     } catch (error) {
       this.logger.error('Presence sync failed:', error);
     }
@@ -119,27 +147,44 @@ export class GamerstakeService {
         where: { gamerstakeUserId: undefined },
       });
 
-      const linkedProfiles = profilesWithGamerstake.filter((p) => p.gamerstakeUserId);
+      const linkedProfiles = profilesWithGamerstake.filter(
+        (p) => p.gamerstakeUserId,
+      );
 
       for (const profile of linkedProfiles) {
         try {
-          const gamerstakeProfile = await this.fetchGamerstakeProfile(profile.gamerstakeUserId!);
+          const gamerstakeProfile = await this.fetchGamerstakeProfile(
+            profile.gamerstakeUserId!,
+          );
           if (gamerstakeProfile) {
-            await this.profileService.syncFromGamerstake(profile.id, gamerstakeProfile);
+            await this.profileService.syncFromGamerstake(
+              profile.id,
+              gamerstakeProfile,
+            );
           }
         } catch (error) {
-          this.logger.error(`Failed to sync profile for user ${profile.id}:`, error);
+          this.logger.error(
+            `Failed to sync profile for user ${profile.id}:`,
+            error,
+          );
         }
       }
 
-      this.logger.log(`Completed profile sync for ${linkedProfiles.length} users`);
+      this.logger.log(
+        `Completed profile sync for ${linkedProfiles.length} users`,
+      );
     } catch (error) {
       this.logger.error('Profile sync failed:', error);
     }
   }
 
-  async linkGamerstakeAccount(userId: string, gamerstakeUserId: string): Promise<SocialProfile> {
-    const profile = await this.profileRepository.findOne({ where: { id: userId } });
+  async linkGamerstakeAccount(
+    userId: string,
+    gamerstakeUserId: string,
+  ): Promise<SocialProfile> {
+    const profile = await this.profileRepository.findOne({
+      where: { id: userId },
+    });
     if (!profile) {
       throw new Error('Profile not found');
     }
@@ -150,11 +195,13 @@ export class GamerstakeService {
     const savedProfile = await this.profileRepository.save(profile);
 
     await this.syncUserFriends(savedProfile);
-    const gamerstakePresence = await this.fetchGamerstakePresence(gamerstakeUserId);
+    const gamerstakePresence =
+      await this.fetchGamerstakePresence(gamerstakeUserId);
     if (gamerstakePresence) {
       await this.presenceService.syncWithGamerstake(userId, gamerstakePresence);
     }
-    const gamerstakeProfile = await this.fetchGamerstakeProfile(gamerstakeUserId);
+    const gamerstakeProfile =
+      await this.fetchGamerstakeProfile(gamerstakeUserId);
     if (gamerstakeProfile) {
       await this.profileService.syncFromGamerstake(userId, gamerstakeProfile);
     }
@@ -163,7 +210,9 @@ export class GamerstakeService {
   }
 
   async unlinkGamerstakeAccount(userId: string): Promise<SocialProfile> {
-    const profile = await this.profileRepository.findOne({ where: { id: userId } });
+    const profile = await this.profileRepository.findOne({
+      where: { id: userId },
+    });
     if (!profile) {
       throw new Error('Profile not found');
     }
@@ -177,7 +226,9 @@ export class GamerstakeService {
   private async syncUserFriends(profile: SocialProfile): Promise<void> {
     if (!profile.gamerstakeUserId) return;
 
-    const gamerstakeFriends = await this.fetchGamerstakeFriends(profile.gamerstakeUserId);
+    const gamerstakeFriends = await this.fetchGamerstakeFriends(
+      profile.gamerstakeUserId,
+    );
 
     for (const gsFriend of gamerstakeFriends) {
       const friendProfile = await this.profileRepository.findOne({
@@ -203,10 +254,21 @@ export class GamerstakeService {
 
           await this.friendshipRepository.save(friendship);
 
-          await this.profileRepository.increment({ id: profile.id }, 'friendCount', 1);
-          await this.profileRepository.increment({ id: friendProfile.id }, 'friendCount', 1);
+          await this.profileRepository.increment(
+            { id: profile.id },
+            'friendCount',
+            1,
+          );
+          await this.profileRepository.increment(
+            { id: friendProfile.id },
+            'friendCount',
+            1,
+          );
 
-          await this.neo4jService.createFriendship(profile.id, friendProfile.id);
+          await this.neo4jService.createFriendship(
+            profile.id,
+            friendProfile.id,
+          );
         }
       }
     }
@@ -215,14 +277,19 @@ export class GamerstakeService {
     await this.profileRepository.save(profile);
   }
 
-  private async fetchGamerstakeFriends(gamerstakeUserId: string): Promise<GamerstakeFriend[]> {
+  private async fetchGamerstakeFriends(
+    gamerstakeUserId: string,
+  ): Promise<GamerstakeFriend[]> {
     try {
-      const response = await fetch(`${this.apiUrl}/users/${gamerstakeUserId}/friends`, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${this.apiUrl}/users/${gamerstakeUserId}/friends`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`Gamerstake API error: ${response.status}`);
@@ -231,19 +298,27 @@ export class GamerstakeService {
       const data = await response.json();
       return data.friends || [];
     } catch (error) {
-      this.logger.error(`Failed to fetch Gamerstake friends for ${gamerstakeUserId}:`, error);
+      this.logger.error(
+        `Failed to fetch Gamerstake friends for ${gamerstakeUserId}:`,
+        error,
+      );
       return [];
     }
   }
 
-  private async fetchGamerstakePresence(gamerstakeUserId: string): Promise<GamerstakePresence | null> {
+  private async fetchGamerstakePresence(
+    gamerstakeUserId: string,
+  ): Promise<GamerstakePresence | null> {
     try {
-      const response = await fetch(`${this.apiUrl}/users/${gamerstakeUserId}/presence`, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${this.apiUrl}/users/${gamerstakeUserId}/presence`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`Gamerstake API error: ${response.status}`);
@@ -251,19 +326,27 @@ export class GamerstakeService {
 
       return await response.json();
     } catch (error) {
-      this.logger.error(`Failed to fetch Gamerstake presence for ${gamerstakeUserId}:`, error);
+      this.logger.error(
+        `Failed to fetch Gamerstake presence for ${gamerstakeUserId}:`,
+        error,
+      );
       return null;
     }
   }
 
-  private async fetchGamerstakeProfile(gamerstakeUserId: string): Promise<GamerstakeProfile | null> {
+  private async fetchGamerstakeProfile(
+    gamerstakeUserId: string,
+  ): Promise<GamerstakeProfile | null> {
     try {
-      const response = await fetch(`${this.apiUrl}/users/${gamerstakeUserId}/profile`, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${this.apiUrl}/users/${gamerstakeUserId}/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`Gamerstake API error: ${response.status}`);
@@ -271,13 +354,18 @@ export class GamerstakeService {
 
       return await response.json();
     } catch (error) {
-      this.logger.error(`Failed to fetch Gamerstake profile for ${gamerstakeUserId}:`, error);
+      this.logger.error(
+        `Failed to fetch Gamerstake profile for ${gamerstakeUserId}:`,
+        error,
+      );
       return null;
     }
   }
 
   async exportFriendsToGamerstake(userId: string): Promise<void> {
-    const profile = await this.profileRepository.findOne({ where: { id: userId } });
+    const profile = await this.profileRepository.findOne({
+      where: { id: userId },
+    });
     if (!profile || !profile.gamerstakeUserId) {
       throw new Error('Profile not linked to Gamerstake');
     }
@@ -299,16 +387,22 @@ export class GamerstakeService {
 
     if (friendsToExport.length > 0) {
       try {
-        await fetch(`${this.apiUrl}/users/${profile.gamerstakeUserId}/friends/import`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json',
+        await fetch(
+          `${this.apiUrl}/users/${profile.gamerstakeUserId}/friends/import`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ friendIds: friendsToExport }),
           },
-          body: JSON.stringify({ friendIds: friendsToExport }),
-        });
+        );
       } catch (error) {
-        this.logger.error(`Failed to export friends to Gamerstake for ${userId}:`, error);
+        this.logger.error(
+          `Failed to export friends to Gamerstake for ${userId}:`,
+          error,
+        );
         throw error;
       }
     }

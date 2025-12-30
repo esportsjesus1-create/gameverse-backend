@@ -1,12 +1,20 @@
-import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike } from 'typeorm';
+import { Repository } from 'typeorm';
 import {
   SocialProfile,
   ProfileVisibility,
   GamingPlatform,
 } from '../../database/entities/social-profile.entity';
-import { Friendship, FriendshipStatus } from '../../database/entities/friendship.entity';
+import {
+  Friendship,
+  FriendshipStatus,
+} from '../../database/entities/friendship.entity';
 import { BlockedUser } from '../../database/entities/blocked-user.entity';
 import { Neo4jService } from '../friend/neo4j.service';
 import {
@@ -44,7 +52,10 @@ export class ProfileService {
     return this.mapToFullProfileResponse(profile);
   }
 
-  async updateProfile(userId: string, dto: UpdateProfileDto): Promise<SocialProfile> {
+  async updateProfile(
+    userId: string,
+    dto: UpdateProfileDto,
+  ): Promise<SocialProfile> {
     const profile = await this.profileRepository.findOne({
       where: { id: userId },
     });
@@ -101,7 +112,10 @@ export class ProfileService {
     return this.mapToProfileResponse(profile);
   }
 
-  async setVisibility(userId: string, dto: SetVisibilityDto): Promise<SocialProfile> {
+  async setVisibility(
+    userId: string,
+    dto: SetVisibilityDto,
+  ): Promise<SocialProfile> {
     const profile = await this.profileRepository.findOne({
       where: { id: userId },
     });
@@ -171,7 +185,10 @@ export class ProfileService {
     return this.profileRepository.save(profile);
   }
 
-  async removeGamingPlatform(userId: string, platformName: string): Promise<SocialProfile> {
+  async removeGamingPlatform(
+    userId: string,
+    platformName: string,
+  ): Promise<SocialProfile> {
     const profile = await this.profileRepository.findOne({
       where: { id: userId },
     });
@@ -195,7 +212,9 @@ export class ProfileService {
     return this.profileRepository.save(profile);
   }
 
-  async getGameStatistics(userId: string): Promise<SocialProfile['gameStatistics']> {
+  async getGameStatistics(
+    userId: string,
+  ): Promise<SocialProfile['gameStatistics']> {
     const profile = await this.profileRepository.findOne({
       where: { id: userId },
     });
@@ -207,7 +226,9 @@ export class ProfileService {
     return profile.gameStatistics;
   }
 
-  async getAchievements(userId: string): Promise<SocialProfile['achievements']> {
+  async getAchievements(
+    userId: string,
+  ): Promise<SocialProfile['achievements']> {
     const profile = await this.profileRepository.findOne({
       where: { id: userId },
     });
@@ -238,7 +259,8 @@ export class ProfileService {
       throw new NotFoundException('Profile not found');
     }
 
-    if (gamerstakeData.displayName) profile.displayName = gamerstakeData.displayName;
+    if (gamerstakeData.displayName)
+      profile.displayName = gamerstakeData.displayName;
     if (gamerstakeData.avatarUrl) profile.avatarUrl = gamerstakeData.avatarUrl;
     if (gamerstakeData.bio) profile.bio = gamerstakeData.bio;
     if (gamerstakeData.gameStatistics) {
@@ -280,7 +302,9 @@ export class ProfileService {
       .where('(p.username ILIKE :query OR p.displayName ILIKE :query)', {
         query: `%${query}%`,
       })
-      .andWhere('p.visibility != :private', { private: ProfileVisibility.PRIVATE });
+      .andWhere('p.visibility != :private', {
+        private: ProfileVisibility.PRIVATE,
+      });
 
     if (blockedIds.length > 0) {
       queryBuilder.andWhere('p.id NOT IN (:...blockedIds)', { blockedIds });
@@ -294,7 +318,10 @@ export class ProfileService {
 
     const data: UserSearchResultDto[] = await Promise.all(
       profiles.map(async (p) => {
-        const mutualFriends = await this.neo4jService.getMutualFriends(currentUserId, p.id);
+        const mutualFriends = await this.neo4jService.getMutualFriends(
+          currentUserId,
+          p.id,
+        );
         return {
           id: p.id,
           username: p.username,
@@ -348,7 +375,9 @@ export class ProfileService {
     return savedProfile;
   }
 
-  private mapToFullProfileResponse(profile: SocialProfile): FullProfileResponseDto {
+  private mapToFullProfileResponse(
+    profile: SocialProfile,
+  ): FullProfileResponseDto {
     return {
       id: profile.id,
       userId: profile.userId,
@@ -391,7 +420,9 @@ export class ProfileService {
     };
   }
 
-  private mapToBasicProfileResponse(profile: SocialProfile): ProfileResponseDto {
+  private mapToBasicProfileResponse(
+    profile: SocialProfile,
+  ): ProfileResponseDto {
     return {
       id: profile.id,
       userId: profile.userId,
@@ -457,8 +488,16 @@ export class ProfileService {
   private async areFriends(userId1: string, userId2: string): Promise<boolean> {
     const friendship = await this.friendshipRepository.findOne({
       where: [
-        { requesterId: userId1, addresseeId: userId2, status: FriendshipStatus.ACCEPTED },
-        { requesterId: userId2, addresseeId: userId1, status: FriendshipStatus.ACCEPTED },
+        {
+          requesterId: userId1,
+          addresseeId: userId2,
+          status: FriendshipStatus.ACCEPTED,
+        },
+        {
+          requesterId: userId2,
+          addresseeId: userId1,
+          status: FriendshipStatus.ACCEPTED,
+        },
       ],
     });
     return !!friendship;
@@ -478,6 +517,8 @@ export class ProfileService {
     const blocks = await this.blockedUserRepository.find({
       where: [{ blockerId: userId }, { blockedId: userId }],
     });
-    return blocks.map((b) => (b.blockerId === userId ? b.blockedId : b.blockerId));
+    return blocks.map((b) =>
+      b.blockerId === userId ? b.blockedId : b.blockerId,
+    );
   }
 }

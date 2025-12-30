@@ -5,7 +5,6 @@ import {
   IsUrl,
   MaxLength,
   IsBoolean,
-  IsArray,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -71,7 +70,9 @@ export class UpdatePrivacySettingsDto {
 }
 
 export class GamingPlatformDto {
-  @ApiProperty({ description: 'Platform name (e.g., Steam, Xbox, PlayStation)' })
+  @ApiProperty({
+    description: 'Platform name (e.g., Steam, Xbox, PlayStation)',
+  })
   @IsString()
   @MaxLength(50)
   platform: string;
