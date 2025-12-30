@@ -1,0 +1,607 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RankedTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+  MASTER
+  GRANDMASTER
+  CHALLENGER
+}
+
+enum SeasonState {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  ENDING
+  ENDED
+  ARCHIVED
+}
+
+enum SeasonType {
+  RANKED
+  CASUAL
+  TOURNAMENT
+  EVENT
+  SPECIAL
+}
+
+enum ResetType {
+  SOFT
+  HARD
+  NONE
+}
+
+enum ModifierType {
+  MMR_MULTIPLIER
+  XP_MULTIPLIER
+  BONUS_EVENT
+  DECAY_RULE
+  STREAK_BONUS
+  TIME_BASED
+}
+
+enum ChallengeType {
+  WINS
+  GAMES_PLAYED
+  TIER_REACHED
+  WIN_STREAK
+  MMR_GAINED
+  KILLS
+  ASSISTS
+  OBJECTIVES
+  CUSTOM
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  ACTIVATE
+  PAUSE
+  RESUME
+  END
+  EXTEND
+  TERMINATE
+  DISTRIBUTE_REWARDS
+  BULK_OPERATION
+  EMERGENCY_ACTION
+}
+
+model Season {
+  id                       String           @id @default(uuid())
+  name                     String
+  number                   Int              @unique
+  startDate                DateTime
+  endDate                  DateTime?
+  isActive                 Boolean          @default(false)
+  softResetFactor          Float            @default(0.5)
+  placementMatchesRequired Int              @default(10)
+  state                    SeasonState      @default(DRAFT)
+  type                     SeasonType       @default(RANKED)
+  resetType                ResetType        @default(SOFT)
+  version                  Int              @default(1)
+  templateId               String?
+  parentSeasonId           String?
+  gameIds                  String[]         @default([])
+  timezone                 String           @default("UTC")
+  mmrFloor                 Int              @default(0)
+  mmrCeiling               Int              @default(5000)
+  demotionProtection       Int              @default(1)
+  decayEnabled             Boolean          @default(true)
+  decayDays                Int              @default(14)
+  decayAmount              Int              @default(25)
+  promoWinsRequired        Int              @default(2)
+  promoGamesMax            Int              @default(3)
+  demotionShieldGames      Int              @default(3)
+  skillGroupRestriction    Int              @default(2)
+  gamerstakeEventId        String?
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+  playerSeasons            PlayerSeason[]
+  matchResults             MatchResult[]
+  seasonRewards            SeasonReward[]
+  metadata                 SeasonMetadata?
+  rules                    SeasonRule[]
+  modifiers                SeasonModifier[]
+  challenges               SeasonChallenge[]
+  events                   SeasonEvent[]
+  auditLogs                SeasonAuditLog[]
+  analytics                SeasonAnalytics?
+
+  @@index([isActive])
+  @@index([number])
+  @@index([state])
+  @@index([type])
+  @@index([gamerstakeEventId])
+}
+
+model PlayerSeason {
+  id                      String      @id @default(uuid())
+  playerId                String
+  seasonId                String
+  season                  Season      @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  mmr                     Int         @default(1200)
+  peakMmr                 Int         @default(1200)
+  tier                    RankedTier  @default(SILVER)
+  division                Int?        @default(4)
+  leaguePoints            Int         @default(0)
+  wins                    Int         @default(0)
+  losses                  Int         @default(0)
+  placementMatchesPlayed  Int         @default(0)
+  placementMatchesWon     Int         @default(0)
+  isPlacementComplete     Boolean     @default(false)
+  winStreak               Int         @default(0)
+  lossStreak              Int         @default(0)
+  isInPromos              Boolean     @default(false)
+  promoWins               Int         @default(0)
+  promoLosses             Int         @default(0)
+  lastActivityAt          DateTime    @default(now())
+  decayWarningAt          DateTime?
+  isDecayProtected        Boolean     @default(false)
+  demotionShieldGames     Int         @default(0)
+  previousTier            RankedTier?
+  previousDivision        Int?
+  gamerstakePlayerId      String?
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+
+  @@unique([playerId, seasonId])
+  @@index([playerId])
+  @@index([seasonId])
+  @@index([mmr])
+  @@index([tier, division])
+  @@index([lastActivityAt])
+  @@index([gamerstakePlayerId])
+}
+
+model MatchResult {
+  id               String   @id @default(uuid())
+  playerId         String
+  seasonId         String
+  season           Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  opponentId       String
+  playerMmrBefore  Int
+  playerMmrAfter   Int
+  opponentMmrBefore Int
+  opponentMmrAfter Int
+  isWin            Boolean
+  mmrChange        Int
+  isPlacementMatch Boolean  @default(false)
+  gameMode         String   @default("ranked")
+  createdAt        DateTime @default(now())
+
+  @@index([playerId])
+  @@index([seasonId])
+  @@index([createdAt])
+}
+
+model SeasonArchive {
+  id           String     @id @default(uuid())
+  playerId     String
+  seasonId     String
+  seasonNumber Int
+  finalMmr     Int
+  peakMmr      Int
+  finalTier    RankedTier
+  finalDivision Int?
+  totalWins    Int
+  totalLosses  Int
+  finalRank    Int?
+  createdAt    DateTime   @default(now())
+
+  @@unique([playerId, seasonId])
+  @@index([playerId])
+  @@index([seasonNumber])
+}
+
+enum RewardType {
+  CURRENCY
+  SKIN
+  BORDER
+  ICON
+  EMOTE
+  TITLE
+  CHEST
+}
+
+enum MilestoneType {
+  FIRST_WIN
+  WIN_STREAK
+  GAMES_PLAYED
+  TIER_REACHED
+  PEAK_MMR
+  PLACEMENT_COMPLETE
+  SEASON_COMPLETE
+}
+
+model SeasonReward {
+  id                    String        @id @default(uuid())
+  seasonId              String
+  season                Season        @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  tier                  RankedTier
+  minTier               RankedTier?
+  rewardType            RewardType
+  rewardId              String
+  rewardName            String
+  rewardDescription     String
+  quantity              Int           @default(1)
+  isExclusive           Boolean       @default(false)
+  isMilestoneReward     Boolean       @default(false)
+  isParticipationReward Boolean       @default(false)
+  milestoneType         MilestoneType?
+  milestoneValue        Int?
+  minGamesRequired      Int?
+  expiresAt             DateTime?
+  createdAt             DateTime      @default(now())
+
+  @@unique([seasonId, tier, rewardType, rewardId])
+  @@index([seasonId])
+  @@index([tier])
+  @@index([isMilestoneReward])
+  @@index([isParticipationReward])
+}
+
+model PlayerReward {
+  id           String     @id @default(uuid())
+  playerId     String
+  seasonId     String
+  rewardId     String
+  rewardType   RewardType
+  rewardName   String
+  earnedTier   RankedTier
+  quantity     Int        @default(1)
+  expiresAt    DateTime?
+  claimedAt    DateTime?
+  notifiedAt   DateTime?
+  isRetroactive Boolean   @default(false)
+  metadata     Json       @default("{}")
+  createdAt    DateTime   @default(now())
+
+  @@unique([playerId, seasonId, rewardId])
+  @@index([playerId])
+  @@index([seasonId])
+  @@index([expiresAt])
+  @@index([claimedAt])
+}
+
+model PlayerMilestone {
+  id             String        @id @default(uuid())
+  playerId       String
+  seasonId       String
+  milestoneType  MilestoneType
+  milestoneValue Int
+  achievedAt     DateTime      @default(now())
+  rewardClaimed  Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+
+  @@unique([playerId, seasonId, milestoneType, milestoneValue])
+  @@index([playerId])
+  @@index([seasonId])
+  @@index([milestoneType])
+}
+
+model PlayerProgression {
+  id        String     @id @default(uuid())
+  playerId  String
+  seasonId  String
+  date      DateTime   @default(now())
+  mmr       Int
+  tier      RankedTier
+  division  Int?
+  wins      Int
+  losses    Int
+  createdAt DateTime   @default(now())
+
+  @@index([playerId, seasonId])
+  @@index([date])
+}
+
+model PlayerStats {
+  id                String     @id @default(uuid())
+  playerId          String
+  seasonId          String
+  longestWinStreak  Int        @default(0)
+  longestLossStreak Int        @default(0)
+  peakTier          RankedTier @default(BRONZE)
+  peakDivision      Int?       @default(4)
+  totalMMRGained    Int        @default(0)
+  totalMMRLost      Int        @default(0)
+  gamesWithMMRGain  Int        @default(0)
+  gamesWithMMRLoss  Int        @default(0)
+  updatedAt         DateTime   @updatedAt
+  createdAt         DateTime   @default(now())
+
+  @@unique([playerId, seasonId])
+  @@index([playerId])
+  @@index([seasonId])
+}
+
+model SeasonMetadata {
+  id              String   @id @default(uuid())
+  seasonId        String   @unique
+  season          Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  theme           String?
+  description     String?
+  bannerImageUrl  String?
+  thumbnailUrl    String?
+  promoVideoUrl   String?
+  colorPrimary    String?
+  colorSecondary  String?
+  localizations   Json     @default("{}")
+  customData      Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([seasonId])
+}
+
+model SeasonTemplate {
+  id                       String      @id @default(uuid())
+  name                     String      @unique
+  description              String?
+  type                     SeasonType  @default(RANKED)
+  resetType                ResetType   @default(SOFT)
+  softResetFactor          Float       @default(0.5)
+  placementMatchesRequired Int         @default(10)
+  durationDays             Int         @default(90)
+  mmrFloor                 Int         @default(0)
+  mmrCeiling               Int         @default(5000)
+  demotionProtection       Int         @default(1)
+  decayEnabled             Boolean     @default(true)
+  decayDays                Int         @default(14)
+  decayAmount              Int         @default(25)
+  promoWinsRequired        Int         @default(2)
+  promoGamesMax            Int         @default(3)
+  demotionShieldGames      Int         @default(3)
+  skillGroupRestriction    Int         @default(2)
+  defaultRules             Json        @default("[]")
+  defaultModifiers         Json        @default("[]")
+  defaultRewards           Json        @default("[]")
+  isActive                 Boolean     @default(true)
+  createdAt                DateTime    @default(now())
+  updatedAt                DateTime    @updatedAt
+
+  @@index([type])
+  @@index([isActive])
+}
+
+model SeasonRule {
+  id          String   @id @default(uuid())
+  seasonId    String
+  season      Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  ruleType    String
+  ruleConfig  Json     @default("{}")
+  priority    Int      @default(0)
+  isEnabled   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([seasonId, name])
+  @@index([seasonId])
+  @@index([ruleType])
+}
+
+model SeasonModifier {
+  id           String       @id @default(uuid())
+  seasonId     String
+  season       Season       @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  modifierType ModifierType
+  value        Float        @default(1.0)
+  startTime    DateTime?
+  endTime      DateTime?
+  daysOfWeek   Int[]        @default([])
+  hoursOfDay   Int[]        @default([])
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@unique([seasonId, name])
+  @@index([seasonId])
+  @@index([modifierType])
+  @@index([isActive])
+}
+
+model SeasonChallenge {
+  id              String                    @id @default(uuid())
+  seasonId        String
+  season          Season                    @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  challengeType   ChallengeType
+  targetValue     Int
+  rewardType      RewardType?
+  rewardId        String?
+  rewardQuantity  Int                       @default(1)
+  startDate       DateTime?
+  endDate         DateTime?
+  isActive        Boolean                   @default(true)
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  playerProgress  PlayerChallengeProgress[]
+
+  @@unique([seasonId, name])
+  @@index([seasonId])
+  @@index([challengeType])
+  @@index([isActive])
+}
+
+model PlayerChallengeProgress {
+  id           String          @id @default(uuid())
+  playerId     String
+  challengeId  String
+  challenge    SeasonChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  currentValue Int             @default(0)
+  isCompleted  Boolean         @default(false)
+  completedAt  DateTime?
+  rewardClaimed Boolean        @default(false)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@unique([playerId, challengeId])
+  @@index([playerId])
+  @@index([challengeId])
+  @@index([isCompleted])
+}
+
+enum EventType {
+  STATE_CHANGE
+  REWARD_DISTRIBUTION
+  PLAYER_MILESTONE
+  CHALLENGE_COMPLETE
+  TIER_CHANGE
+  SEASON_START
+  SEASON_END
+  BONUS_EVENT
+  EMERGENCY
+  CUSTOM
+}
+
+model SeasonEvent {
+  id          String    @id @default(uuid())
+  seasonId    String
+  season      Season    @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  eventType   EventType
+  eventData   Json      @default("{}")
+  webhookUrl  String?
+  isProcessed Boolean   @default(false)
+  processedAt DateTime?
+  error       String?
+  createdAt   DateTime  @default(now())
+
+  @@index([seasonId])
+  @@index([eventType])
+  @@index([isProcessed])
+  @@index([createdAt])
+}
+
+model SeasonAuditLog {
+  id          String      @id @default(uuid())
+  seasonId    String
+  season      Season      @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  action      AuditAction
+  actorId     String
+  actorType   String      @default("admin")
+  targetType  String?
+  targetId    String?
+  previousState Json?
+  newState    Json?
+  metadata    Json        @default("{}")
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+
+  @@index([seasonId])
+  @@index([action])
+  @@index([actorId])
+  @@index([createdAt])
+}
+
+model SeasonAnalytics {
+  id                    String   @id @default(uuid())
+  seasonId              String   @unique
+  season                Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  totalPlayers          Int      @default(0)
+  activePlayers         Int      @default(0)
+  totalMatches          Int      @default(0)
+  averageMatchesPerDay  Float    @default(0)
+  averageMMR            Float    @default(0)
+  medianMMR             Float    @default(0)
+  tierDistribution      Json     @default("{}")
+  dailyActiveUsers      Json     @default("[]")
+  weeklyActiveUsers     Json     @default("[]")
+  monthlyActiveUsers    Json     @default("[]")
+  retentionRate         Float    @default(0)
+  churnRate             Float    @default(0)
+  rewardsDistributed    Int      @default(0)
+  rewardsClaimed        Int      @default(0)
+  challengesCompleted   Int      @default(0)
+  peakConcurrentPlayers Int      @default(0)
+  lastCalculatedAt      DateTime @default(now())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([seasonId])
+}
+
+model PlayerSeasonHistory {
+  id              String     @id @default(uuid())
+  playerId        String
+  seasonId        String
+  seasonNumber    Int
+  seasonName      String
+  finalMmr        Int
+  peakMmr         Int
+  finalTier       RankedTier
+  finalDivision   Int?
+  finalRank       Int?
+  totalWins       Int
+  totalLosses     Int
+  winRate         Float
+  playtime        Int        @default(0)
+  achievements    Json       @default("[]")
+  rewards         Json       @default("[]")
+  challenges      Json       @default("[]")
+  carryoverItems  Json       @default("[]")
+  createdAt       DateTime   @default(now())
+
+  @@unique([playerId, seasonId])
+  @@index([playerId])
+  @@index([seasonNumber])
+  @@index([finalTier])
+}
+
+model PlayerLifetimeStats {
+  id                  String     @id @default(uuid())
+  playerId            String     @unique
+  totalSeasons        Int        @default(0)
+  totalWins           Int        @default(0)
+  totalLosses         Int        @default(0)
+  totalMatches        Int        @default(0)
+  highestMmr          Int        @default(0)
+  highestTier         RankedTier @default(BRONZE)
+  highestDivision     Int?       @default(4)
+  totalRewardsEarned  Int        @default(0)
+  totalRewardsClaimed Int        @default(0)
+  achievementCount    Int        @default(0)
+  challengesCompleted Int        @default(0)
+  totalPlaytime       Int        @default(0)
+  firstSeasonId       String?
+  lastActiveSeasonId  String?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  @@index([playerId])
+  @@index([highestTier])
+}
+
+model PlayerInventoryCarryover {
+  id            String   @id @default(uuid())
+  playerId      String
+  fromSeasonId  String
+  toSeasonId    String
+  itemType      String
+  itemId        String
+  quantity      Int      @default(1)
+  metadata      Json     @default("{}")
+  createdAt     DateTime @default(now())
+
+  @@unique([playerId, fromSeasonId, toSeasonId, itemId])
+  @@index([playerId])
+  @@index([fromSeasonId])
+  @@index([toSeasonId])
+}

@@ -1,0 +1,9 @@
+export { mmrService, MMRService } from './mmr.service';
+export { tierService, TierService } from './tier.service';
+export { seasonService, SeasonService } from './season.service';
+export { rewardsService, RewardsService } from './rewards.service';
+export { progressionService, ProgressionService } from './progression.service';
+export { lifecycleService, LifecycleService } from './lifecycle.service';
+export { rulesService, RulesService } from './rules.service';
+export { adminService, AdminService } from './admin.service';
+export { gamerstakeService, GamerstakeService } from './gamerstake.service';
