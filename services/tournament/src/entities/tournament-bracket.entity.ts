@@ -9,8 +9,8 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { Tournament, TournamentFormat } from './tournament.entity';
-import { TournamentMatch } from './tournament-match.entity';
+import type { Tournament } from './tournament.entity';
+import type { TournamentMatch } from './tournament-match.entity';
 
 export enum BracketType {
   WINNERS = 'winners',
@@ -46,11 +46,11 @@ export class TournamentBracket {
   bracketType: BracketType;
 
   @Column({
-    type: 'enum',
-    enum: TournamentFormat,
-    default: TournamentFormat.SINGLE_ELIMINATION,
+    type: 'varchar',
+    length: 50,
+    default: 'single_elimination',
   })
-  format: TournamentFormat;
+  format: string;
 
   @Column({
     type: 'enum',
@@ -104,10 +104,10 @@ export class TournamentBracket {
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 
-  @ManyToOne(() => Tournament, (tournament) => tournament.brackets, { onDelete: 'CASCADE' })
+  @ManyToOne('Tournament', 'brackets', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tournamentId' })
   tournament: Tournament;
 
-  @OneToMany(() => TournamentMatch, (match) => match.bracket)
+  @OneToMany('TournamentMatch', 'bracket')
   matches: TournamentMatch[];
 }

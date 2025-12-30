@@ -7,11 +7,11 @@ import {
   OneToMany,
   Index,
 } from 'typeorm';
-import { TournamentRegistration } from './tournament-registration.entity';
-import { TournamentMatch } from './tournament-match.entity';
-import { TournamentBracket } from './tournament-bracket.entity';
-import { TournamentStanding } from './tournament-standing.entity';
-import { TournamentPrize } from './tournament-prize.entity';
+import type { TournamentRegistration } from './tournament-registration.entity';
+import type { TournamentMatch } from './tournament-match.entity';
+import type { TournamentBracket } from './tournament-bracket.entity';
+import type { TournamentStanding } from './tournament-standing.entity';
+import type { TournamentPrize } from './tournament-prize.entity';
 
 export enum TournamentFormat {
   SINGLE_ELIMINATION = 'single_elimination',
@@ -191,18 +191,18 @@ export class Tournament {
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 
-  @OneToMany(() => TournamentRegistration, (registration) => registration.tournament)
+  @OneToMany('TournamentRegistration', 'tournament')
   registrations: TournamentRegistration[];
 
-  @OneToMany(() => TournamentMatch, (match) => match.tournament)
+  @OneToMany('TournamentMatch', 'tournament')
   matches: TournamentMatch[];
 
-  @OneToMany(() => TournamentBracket, (bracket) => bracket.tournament)
+  @OneToMany('TournamentBracket', 'tournament')
   brackets: TournamentBracket[];
 
-  @OneToMany(() => TournamentStanding, (standing) => standing.tournament)
+  @OneToMany('TournamentStanding', 'tournament')
   standings: TournamentStanding[];
 
-  @OneToMany(() => TournamentPrize, (prize) => prize.tournament)
+  @OneToMany('TournamentPrize', 'tournament')
   prizes: TournamentPrize[];
 }

@@ -8,8 +8,8 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { Tournament } from './tournament.entity';
-import { TournamentBracket } from './tournament-bracket.entity';
+import type { Tournament } from './tournament.entity';
+import type { TournamentBracket } from './tournament-bracket.entity';
 
 export enum MatchStatus {
   PENDING = 'pending',
@@ -199,11 +199,11 @@ export class TournamentMatch {
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 
-  @ManyToOne(() => Tournament, (tournament) => tournament.matches, { onDelete: 'CASCADE' })
+  @ManyToOne('Tournament', 'matches', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tournamentId' })
   tournament: Tournament;
 
-  @ManyToOne(() => TournamentBracket, (bracket) => bracket.matches, {
+  @ManyToOne('TournamentBracket', 'matches', {
     onDelete: 'SET NULL',
     nullable: true,
   })

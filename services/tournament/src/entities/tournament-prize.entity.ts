@@ -8,7 +8,7 @@ import {
   JoinColumn,
   Index,
 } from 'typeorm';
-import { Tournament } from './tournament.entity';
+import type { Tournament } from './tournament.entity';
 
 export enum PrizeStatus {
   PENDING = 'pending',
@@ -137,7 +137,7 @@ export class TournamentPrize {
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 
-  @ManyToOne(() => Tournament, (tournament) => tournament.prizes, { onDelete: 'CASCADE' })
+  @ManyToOne('Tournament', 'prizes', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tournamentId' })
   tournament: Tournament;
 }

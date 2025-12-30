@@ -9,7 +9,7 @@ import {
   Index,
   Unique,
 } from 'typeorm';
-import { Tournament } from './tournament.entity';
+import type { Tournament } from './tournament.entity';
 
 @Entity('tournament_standings')
 @Index(['tournamentId', 'rank'])
@@ -119,7 +119,7 @@ export class TournamentStanding {
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
 
-  @ManyToOne(() => Tournament, (tournament) => tournament.standings, { onDelete: 'CASCADE' })
+  @ManyToOne('Tournament', 'standings', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tournamentId' })
   tournament: Tournament;
 }
