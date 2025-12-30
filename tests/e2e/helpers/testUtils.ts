@@ -253,18 +253,24 @@ export async function registerSeasonPlayer(
 ): Promise<SeasonPlayer> {
   const result = await client.query(
     `INSERT INTO season_players (season_id, user_id, current_mmr, peak_mmr, wins, losses, 
-     placement_games_played, placement_completed)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     placement_games_played, placement_completed, win_streak, best_win_streak,
+     in_promotion_series, promotion_wins, promotion_losses)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      RETURNING *`,
     [
       seasonId,
       userId,
-      overrides.current_mmr || 1000,
-      overrides.peak_mmr || overrides.current_mmr || 1000,
-      overrides.wins || 0,
-      overrides.losses || 0,
-      overrides.placement_games_played || 0,
-      overrides.placement_completed || false,
+      overrides.current_mmr ?? 1000,
+      overrides.peak_mmr ?? overrides.current_mmr ?? 1000,
+      overrides.wins ?? 0,
+      overrides.losses ?? 0,
+      overrides.placement_games_played ?? 0,
+      overrides.placement_completed ?? false,
+      overrides.win_streak ?? 0,
+      overrides.best_win_streak ?? 0,
+      overrides.in_promotion_series ?? false,
+      overrides.promotion_wins ?? 0,
+      overrides.promotion_losses ?? 0,
     ]
   );
 
