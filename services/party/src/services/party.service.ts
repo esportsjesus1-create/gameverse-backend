@@ -7,7 +7,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Party, PartyStatus, PartyVisibility } from '../entities/party.entity';
 import { PartyMember, MemberRole, MemberStatus, ReadyStatus } from '../entities/party-member.entity';
@@ -15,7 +15,6 @@ import { PartySettings } from '../entities/party-settings.entity';
 import { CreatePartyDto, UpdatePartyDto } from '../dto';
 import { RedisCacheService } from './redis-cache.service';
 import { GamerstakeService } from './gamerstake.service';
-import { PartyEventType } from '../interfaces/party-events.interface';
 
 @Injectable()
 export class PartyService {

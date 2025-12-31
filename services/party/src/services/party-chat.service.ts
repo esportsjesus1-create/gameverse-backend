@@ -6,7 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, MoreThan } from 'typeorm';
+import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { PartyChatMessage, MessageType, MessageStatus } from '../entities/party-chat-message.entity';
 import { PartyMember } from '../entities/party-member.entity';

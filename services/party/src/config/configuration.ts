@@ -29,4 +29,12 @@ export default () => ({
     readyCheckTimeoutSeconds: parseInt(process.env.PARTY_READY_CHECK_TIMEOUT || '30', 10),
     maxMatchmakingWaitSeconds: parseInt(process.env.PARTY_MAX_MATCHMAKING_WAIT || '600', 10),
   },
+  rateLimit: {
+    shortTtl: parseInt(process.env.RATE_LIMIT_SHORT_TTL || '1000', 10),
+    shortLimit: parseInt(process.env.RATE_LIMIT_SHORT_LIMIT || '10', 10),
+    mediumTtl: parseInt(process.env.RATE_LIMIT_MEDIUM_TTL || '10000', 10),
+    mediumLimit: parseInt(process.env.RATE_LIMIT_MEDIUM_LIMIT || '50', 10),
+    longTtl: parseInt(process.env.RATE_LIMIT_LONG_TTL || '60000', 10),
+    longLimit: parseInt(process.env.RATE_LIMIT_LONG_LIMIT || '100', 10),
+  },
 });

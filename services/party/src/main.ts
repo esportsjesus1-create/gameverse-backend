@@ -1,15 +1,25 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { PartyModule } from './party.module';
+import { PartyExceptionFilter } from './filters';
+import { LoggingInterceptor } from './interceptors';
 
 async function bootstrap() {
-  const app = await NestFactory.create(PartyModule);
+  const logger = new Logger('Bootstrap');
+  const app = await NestFactory.create(PartyModule, {
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+  });
 
   app.enableCors({
     origin: process.env.CORS_ORIGIN || '*',
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-ID'],
   });
+
+  app.useGlobalFilters(new PartyExceptionFilter());
+  app.useGlobalInterceptors(new LoggingInterceptor());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -18,6 +28,22 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       transformOptions: {
         enableImplicitConversion: true,
+      },
+      exceptionFactory: (errors) => {
+        const validationErrors: Record<string, string[]> = {};
+        for (const error of errors) {
+          const property = error.property;
+          if (error.constraints) {
+            validationErrors[property] = Object.values(error.constraints);
+          }
+        }
+        return {
+          statusCode: 400,
+          errorCode: 'VALIDATION_001',
+          message: 'Validation failed',
+          timestamp: new Date().toISOString(),
+          details: { errors: validationErrors },
+        };
       },
     }),
   );
@@ -43,8 +69,8 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  console.log(`Party service running on port ${port}`);
-  console.log(`Swagger docs available at http://localhost:${port}/api/docs`);
+  logger.log(`Party service running on port ${port}`);
+  logger.log(`Swagger docs available at http://localhost:${port}/api/docs`);
 }
 
 bootstrap();
