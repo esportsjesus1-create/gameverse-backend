@@ -35,7 +35,7 @@ export function generateMockToken(userId: string, username: string): string {
   return `${header}.${payload}.${signature}`;
 }
 
-export async function createTestingModule(imports: unknown[]): Promise<TestingModule> {
+export async function createTestingModule(imports: NonNullable<Parameters<typeof Test.createTestingModule>[0]['imports']>): Promise<TestingModule> {
   return Test.createTestingModule({
     imports: [
       ConfigModule.forRoot({
