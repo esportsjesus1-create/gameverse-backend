@@ -312,7 +312,7 @@ export class PartySettingsService {
     return this.updateSettings(partyId, userId, { gameSpecificSettings: settings });
   }
 
-  async getSettingsForGame(partyId: string, gameId: string): Promise<Record<string, unknown> | null> {
+  async getSettingsForGame(partyId: string, _gameId: string): Promise<Record<string, unknown> | null> {
     const settings = await this.getSettings(partyId);
     return settings.gameSpecificSettings || null;
   }

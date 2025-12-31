@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 import { Party } from './entities/party.entity';
 import { PartyMember } from './entities/party-member.entity';
@@ -53,6 +55,27 @@ import configuration from './config/configuration';
       PartyChatMessage,
       PartySettings,
     ]),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ([
+        {
+          name: 'short',
+          ttl: configService.get<number>('rateLimit.shortTtl', 1000),
+          limit: configService.get<number>('rateLimit.shortLimit', 10),
+        },
+        {
+          name: 'medium',
+          ttl: configService.get<number>('rateLimit.mediumTtl', 10000),
+          limit: configService.get<number>('rateLimit.mediumLimit', 50),
+        },
+        {
+          name: 'long',
+          ttl: configService.get<number>('rateLimit.longTtl', 60000),
+          limit: configService.get<number>('rateLimit.longLimit', 100),
+        },
+      ]),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [PartyController],
   providers: [
@@ -67,6 +90,10 @@ import configuration from './config/configuration';
     PartyGateway,
     JwtAuthGuard,
     WsAuthGuard,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
   exports: [
     PartyService,

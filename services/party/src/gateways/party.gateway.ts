@@ -9,7 +9,7 @@ import {
   MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseGuards } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { PartyService } from '../services/party.service';
 import { PartyMemberService } from '../services/party-member.service';
 import { PartyInviteService } from '../services/party-invite.service';

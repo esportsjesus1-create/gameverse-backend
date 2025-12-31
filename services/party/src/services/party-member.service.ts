@@ -9,7 +9,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { Party, PartyStatus, PartyVisibility } from '../entities/party.entity';
+import { Party, PartyStatus } from '../entities/party.entity';
 import { PartyMember, MemberRole, MemberStatus, ReadyStatus } from '../entities/party-member.entity';
 import {
   AddMemberDto,
@@ -119,7 +119,7 @@ export class PartyMemberService {
   }
 
   async removeMember(partyId: string, userId: string, reason: 'left' | 'kicked' = 'left'): Promise<void> {
-    const party = await this.partyService.findById(partyId);
+    await this.partyService.findById(partyId);
     const member = await this.memberRepository.findOne({
       where: { partyId, userId, leftAt: undefined },
     });
