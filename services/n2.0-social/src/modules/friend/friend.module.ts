@@ -7,6 +7,7 @@ import { Friendship } from '../../database/entities/friendship.entity';
 import { SocialProfile } from '../../database/entities/social-profile.entity';
 import { BlockedUser } from '../../database/entities/blocked-user.entity';
 import { NotificationModule } from '../notification/notification.module';
+import { SocialCacheService } from '../../common/services/cache.service';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { NotificationModule } from '../notification/notification.module';
     forwardRef(() => NotificationModule),
   ],
   controllers: [FriendController],
-  providers: [FriendService, Neo4jService],
-  exports: [FriendService, Neo4jService],
+  providers: [FriendService, Neo4jService, SocialCacheService],
+  exports: [FriendService, Neo4jService, SocialCacheService],
 })
 export class FriendModule {}

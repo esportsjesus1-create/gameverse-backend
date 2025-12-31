@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { generateTestUser, generateMockToken, TestUser } from '../setup';
 
 describe('GameVerse Social Module E2E Tests', () => {
-  let app: INestApplication;
+  let app: INestApplication | undefined;
   let user1: TestUser;
   let user2: TestUser;
   let user3: TestUser;
