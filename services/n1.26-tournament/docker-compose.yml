@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  tournament-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gameverse-tournament
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/gameverse_tournament?schema=public
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - gameverse-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: gameverse-tournament-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=gameverse_tournament
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gameverse-network
+    restart: unless-stopped
+
+  # Development service with hot reload
+  tournament-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: gameverse-tournament-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/gameverse_tournament?schema=public
+      - LOG_LEVEL=debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - gameverse-network
+    profiles:
+      - dev
+
+networks:
+  gameverse-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
